@@ -3,20 +3,33 @@
 /* Analisi sito web gratis — Creare Creatività
    Tutti i selettori partono da .ac-audit: si può incollare in WordPress senza conflitti col tema. */
 .ac-audit, .ac-audit *, .ac-audit *::before, .ac-audit *::after { box-sizing: border-box; }
+/* Tema scuro (predefinito): coerente con crearecreativita.it */
 .ac-audit {
-  --ac-ink: #1b1a1c;
-  --ac-muted: #5b5960;
-  --ac-line: #e3e1e6;
-  --ac-soft: #f6f5f7;
-  --ac-bg: #ffffff;
+  --ac-ink: #ffffff;
+  --ac-muted: #b9b6c0;
+  --ac-line: #3d3b41;
+  --ac-soft: #2a292c;
+  --ac-bg: #222124;
+  --ac-track: #3d3b41;
+  --ac-field-bg: #1b1a1c;
+  --ac-field-border: #77747d;
   --ac-lime: #bff747;
   --ac-lime-dark: #4f7a00;
-  --ac-pink: #c4124f;
+  --ac-pink: #f92273;
   --ac-pink-soft: #fde8ef;
   --ac-amber: #8a5a00;
   --ac-amber-soft: #fdf1d6;
   --ac-slate: #4a4f59;
   --ac-slate-soft: #eceef2;
+  --ac-accent: #bff747;
+  --ac-btn-bg: #bff747;
+  --ac-btn-fg: #1b1a1c;
+  --ac-btn-hover: #d3ff70;
+  --ac-err-bg: #4a1226;
+  --ac-err-fg: #ffd9e6;
+  --ac-tick: #bff747;
+  --ac-cta-bg: #bff747;
+  --ac-cta-fg: #1b1a1c;
   --ac-radius: 14px;
   display: block;
   max-width: 880px;
@@ -33,13 +46,15 @@
 .ac-audit p, .ac-audit ul, .ac-audit ol, .ac-audit h2, .ac-audit h3, .ac-audit h4 { margin: 0; padding: 0; }
 .ac-audit ul, .ac-audit ol { list-style: none; }
 .ac-audit a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+/* Tema chiaro (data-ac-theme="light") e stampa */
+.ac-audit[data-ac-theme="light"] { --ac-ink: #1b1a1c; --ac-muted: #5b5960; --ac-line: #e3e1e6; --ac-soft: #f6f5f7; --ac-bg: #ffffff; --ac-track: #dcd9e0; --ac-field-bg: #ffffff; --ac-field-border: #b9b6bf; --ac-pink: #c4124f; --ac-accent: #1b1a1c; --ac-btn-bg: #1b1a1c; --ac-btn-fg: #bff747; --ac-btn-hover: #000000; --ac-err-bg: #fde8ef; --ac-err-fg: #6d0a2c; --ac-tick: #5d9400; --ac-cta-bg: #1b1a1c; --ac-cta-fg: #ffffff; }
 /* Form */
 .ac-audit .ac-form { display: grid; gap: 18px; padding: 28px; background: var(--ac-soft); border: 1px solid var(--ac-line); border-radius: var(--ac-radius); }
 .ac-audit .ac-field label { display: block; margin: 0 0 6px; font-weight: 600; font-size: 15px; }
 .ac-audit .ac-field input[type="text"], .ac-audit .ac-field input[type="email"] {
   display: block; width: 100%; height: 52px; margin: 0; padding: 0 16px;
-  font: inherit; font-size: 17px; color: var(--ac-ink); background: var(--ac-bg);
-  border: 1.5px solid #b9b6bf; border-radius: 10px; box-shadow: none; outline: none; appearance: none;
+  font: inherit; font-size: 17px; color: var(--ac-ink); background: var(--ac-field-bg);
+  border: 1.5px solid var(--ac-field-border); border-radius: 10px; box-shadow: none; outline: none; appearance: none;
 }
 .ac-audit .ac-field input:focus { border-color: var(--ac-ink); box-shadow: 0 0 0 3px var(--ac-lime); }
 .ac-audit .ac-hint { margin-top: 6px; font-size: 14px; color: var(--ac-muted); }
@@ -47,34 +62,34 @@
 .ac-audit .ac-consent { display: grid; grid-template-columns: 24px 1fr; gap: 12px; align-items: start; font-size: 15px; }
 .ac-audit .ac-consent input { width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--ac-ink); }
 .ac-audit .ac-consent label { margin: 0; font-weight: 400; }
-.ac-audit .ac-error { padding: 12px 16px; font-size: 15px; color: #6d0a2c; background: var(--ac-pink-soft); border-left: 4px solid var(--ac-pink); border-radius: 6px; }
+.ac-audit .ac-error { padding: 12px 16px; font-size: 15px; color: var(--ac-err-fg); background: var(--ac-err-bg); border-left: 4px solid var(--ac-pink); border-radius: 6px; }
 .ac-audit .ac-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; margin: 0; padding: 0 28px;
   font: inherit; font-size: 17px; font-weight: 700; line-height: 1.2; letter-spacing: 0; text-transform: none; text-decoration: none;
-  color: var(--ac-lime); background: var(--ac-ink); border: 2px solid var(--ac-ink); border-radius: 999px; box-shadow: none; cursor: pointer;
+  color: var(--ac-btn-fg); background: var(--ac-btn-bg); border: 2px solid var(--ac-btn-bg); border-radius: 999px; box-shadow: none; cursor: pointer;
 }
-.ac-audit .ac-btn:hover { background: #000; }
-.ac-audit .ac-btn:focus-visible { outline: 3px solid var(--ac-lime); outline-offset: 2px; box-shadow: 0 0 0 5px var(--ac-ink); }
+.ac-audit .ac-btn:hover { color: var(--ac-btn-fg); background: var(--ac-btn-hover); border-color: var(--ac-btn-hover); }
+.ac-audit .ac-btn:focus-visible { outline: 3px solid var(--ac-lime); outline-offset: 2px; box-shadow: 0 0 0 5px var(--ac-bg); }
 .ac-audit .ac-btn[disabled] { opacity: .55; cursor: wait; }
-.ac-audit .ac-btn--ghost { color: var(--ac-ink); background: transparent; }
-.ac-audit .ac-btn--ghost:hover { color: var(--ac-ink); background: var(--ac-lime); }
-.ac-audit .ac-btn--lime { color: var(--ac-ink); background: var(--ac-lime); border-color: var(--ac-lime); }
-.ac-audit .ac-btn--lime:hover { color: var(--ac-ink); background: #d3ff70; }
+.ac-audit .ac-btn--ghost { color: var(--ac-ink); background: transparent; border-color: var(--ac-ink); }
+.ac-audit .ac-btn--ghost:hover { color: #1b1a1c; background: var(--ac-lime); border-color: var(--ac-lime); }
+.ac-audit .ac-btn--lime { color: #1b1a1c; background: var(--ac-lime); border-color: var(--ac-lime); }
+.ac-audit .ac-btn--lime:hover { color: #1b1a1c; background: #d3ff70; border-color: #d3ff70; }
 .ac-audit .ac-btn--small { min-height: 42px; padding: 0 20px; font-size: 15px; }
 /* Avanzamento */
 .ac-audit .ac-progress { padding: 28px; background: var(--ac-soft); border: 1px solid var(--ac-line); border-radius: var(--ac-radius); }
 .ac-audit .ac-progress h2 { font-size: 22px; line-height: 1.25; margin-bottom: 4px; }
 .ac-audit .ac-progress-sub { color: var(--ac-muted); font-size: 15px; margin-bottom: 18px; }
-.ac-audit .ac-bar { position: relative; height: 12px; overflow: hidden; background: #dcd9e0; border-radius: 99px; }
-.ac-audit .ac-bar-fill { height: 100%; width: 0; background: var(--ac-ink); border-radius: 99px; transition: width .35s ease; }
+.ac-audit .ac-bar { position: relative; height: 12px; overflow: hidden; background: var(--ac-track); border-radius: 99px; }
+.ac-audit .ac-bar-fill { height: 100%; width: 0; background: var(--ac-accent); border-radius: 99px; transition: width .35s ease; }
 .ac-audit .ac-bar-num { margin-top: 8px; font-size: 14px; font-variant-numeric: tabular-nums; color: var(--ac-muted); }
 .ac-audit .ac-steps { display: grid; gap: 8px; margin-top: 18px; font-size: 15px; }
 .ac-audit .ac-steps li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: center; color: var(--ac-muted); }
 .ac-audit .ac-steps li::before { content: ""; width: 14px; height: 14px; margin-left: 4px; border: 2px solid #b9b6bf; border-radius: 50%; }
 .ac-audit .ac-steps li.is-active { color: var(--ac-ink); font-weight: 600; }
-.ac-audit .ac-steps li.is-active::before { border-color: var(--ac-ink); background: var(--ac-lime); }
+.ac-audit .ac-steps li.is-active::before { border-color: var(--ac-lime); background: var(--ac-lime); }
 .ac-audit .ac-steps li.is-done { color: var(--ac-ink); }
-.ac-audit .ac-steps li.is-done::before { border-color: var(--ac-ink); background: var(--ac-ink); }
+.ac-audit .ac-steps li.is-done::before { border-color: var(--ac-accent); background: var(--ac-accent); }
 .ac-audit .ac-steps li.is-fail::before { border-color: var(--ac-pink); background: var(--ac-pink-soft); }
 /* Errore a tutta pagina */
 .ac-audit .ac-fail { padding: 28px; background: var(--ac-soft); border: 1px solid var(--ac-line); border-radius: var(--ac-radius); }
@@ -90,7 +105,7 @@
 .ac-audit .ac-r-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .ac-audit .ac-score { display: grid; grid-template-columns: 150px 1fr; gap: 28px; align-items: center; padding: 28px; border: 1px solid var(--ac-line); border-radius: var(--ac-radius); background: var(--ac-bg); }
 .ac-audit .ac-ring { --p: 0; --c: var(--ac-ink); position: relative; display: grid; place-items: center; width: 150px; height: 150px; border-radius: 50%;
-  background: conic-gradient(var(--c) calc(var(--p) * 1%), var(--ac-slate-soft) 0); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  background: conic-gradient(var(--c) calc(var(--p) * 1%), var(--ac-track) 0); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .ac-audit .ac-ring::before { content: ""; position: absolute; inset: 14px; border-radius: 50%; background: var(--ac-bg); }
 .ac-audit .ac-ring-num { position: relative; font-size: 44px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
 .ac-audit .ac-ring-num small { display: block; margin-top: 4px; font-size: 13px; font-weight: 500; color: var(--ac-muted); }
@@ -112,7 +127,7 @@
 .ac-audit .ac-area-score { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ac-audit .ac-area-score small { font-size: 14px; font-weight: 500; color: var(--ac-muted); }
 .ac-audit .ac-area-intro { margin: 2px 0 12px; font-size: 15px; color: var(--ac-muted); }
-.ac-audit .ac-meter { height: 8px; overflow: hidden; background: var(--ac-slate-soft); border-radius: 99px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.ac-audit .ac-meter { height: 8px; overflow: hidden; background: var(--ac-track); border-radius: 99px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .ac-audit .ac-meter > i { display: block; height: 100%; background: var(--ac-ink); border-radius: 99px; }
 .ac-audit .ac-meter--buona > i { background: #7fc200; }
 .ac-audit .ac-meter--rinforzare > i { background: #e0a100; }
@@ -129,7 +144,7 @@
 .ac-audit .ac-row--warn .ac-row-value::before { background: #e0a100; }
 .ac-audit .ac-row--bad .ac-row-value::before { background: #e0245e; }
 .ac-audit .ac-row-hint { grid-column: 1 / -1; font-size: 14px; color: var(--ac-muted); overflow-wrap: anywhere; }
-.ac-audit .ac-shot { margin: 0; padding: 10px; background: var(--ac-ink); border-radius: 26px; }
+.ac-audit .ac-shot { margin: 0; padding: 10px; background: #0d0d0e; border: 1px solid var(--ac-line); border-radius: 26px; }
 .ac-audit .ac-shot img { display: block; width: 100%; height: auto; border-radius: 16px; background: #fff; }
 .ac-audit .ac-shot figcaption { margin-top: 8px; font-size: 12px; text-align: center; color: #cfcdd3; }
 /* Problemi */
@@ -150,17 +165,19 @@
 .ac-audit .ac-issue strong { font-weight: 700; }
 .ac-audit .ac-good { display: grid; gap: 6px 24px; grid-template-columns: repeat(2, 1fr); font-size: 15px; }
 .ac-audit .ac-good li { position: relative; padding-left: 26px; }
-.ac-audit .ac-good li::before { content: ""; position: absolute; left: 4px; top: .45em; width: 12px; height: 7px; border-left: 2.5px solid #5d9400; border-bottom: 2.5px solid #5d9400; transform: rotate(-45deg); }
+.ac-audit .ac-good li::before { content: ""; position: absolute; left: 4px; top: .45em; width: 12px; height: 7px; border-left: 2.5px solid var(--ac-tick); border-bottom: 2.5px solid var(--ac-tick); transform: rotate(-45deg); }
 .ac-audit .ac-swatches { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 .ac-audit .ac-swatch { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ac-muted); }
-.ac-audit .ac-swatch i { width: 22px; height: 22px; border: 1px solid rgba(0,0,0,.18); border-radius: 6px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.ac-audit .ac-swatch i { width: 22px; height: 22px; border: 1px solid var(--ac-line); border-radius: 6px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 /* Invito finale */
-.ac-audit .ac-cta { padding: 30px; color: #fff; background: var(--ac-ink); border-radius: var(--ac-radius); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.ac-audit .ac-cta h2 { font-size: 24px; line-height: 1.25; margin-bottom: 8px; color: #fff; }
-.ac-audit .ac-cta p { max-width: 60ch; color: #e7e5ea; }
+.ac-audit .ac-cta { padding: 30px; color: var(--ac-cta-fg); background: var(--ac-cta-bg); border-radius: var(--ac-radius); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.ac-audit .ac-cta h2 { font-size: 24px; line-height: 1.25; margin-bottom: 8px; color: var(--ac-cta-fg); }
+.ac-audit .ac-cta p { max-width: 60ch; color: var(--ac-cta-fg); }
 .ac-audit .ac-cta-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
-.ac-audit .ac-cta .ac-btn--ghost { color: #fff; border-color: #fff; }
-.ac-audit .ac-cta .ac-btn--ghost:hover { color: var(--ac-ink); background: #fff; }
+.ac-audit .ac-cta .ac-btn { color: var(--ac-cta-bg); background: var(--ac-cta-fg); border-color: var(--ac-cta-fg); }
+.ac-audit .ac-cta .ac-btn:hover { color: var(--ac-cta-bg); background: var(--ac-cta-fg); opacity: .85; }
+.ac-audit .ac-cta .ac-btn--ghost { color: var(--ac-cta-fg); background: transparent; border-color: var(--ac-cta-fg); }
+.ac-audit .ac-cta .ac-btn--ghost:hover { color: var(--ac-cta-bg); background: var(--ac-cta-fg); opacity: 1; }
 .ac-audit .ac-cta-print { display: none; margin-top: 12px; font-size: 14px; }
 .ac-audit .ac-note { font-size: 13.5px; color: var(--ac-muted); }
 @media (max-width: 640px) {
@@ -179,17 +196,18 @@
 /* Stampa / PDF: il JS nasconde tutto il resto della pagina, qui si pulisce il report */
 .ac-print-hide { display: none !important; }
 @media print {
-  .ac-audit { max-width: none; font-size: 11.5pt; color: #000; }
+  .ac-audit { --ac-ink: #000; --ac-muted: #444; --ac-line: #bbb; --ac-soft: #fff; --ac-bg: #fff; --ac-track: #ddd; --ac-pink: #c4124f; --ac-accent: #000; --ac-tick: #3d6b00; max-width: none; font-size: 11.5pt; color: #000; }
   .ac-audit .ac-r-actions, .ac-audit .ac-cta-actions, .ac-audit .ac-no-print { display: none !important; }
-  .ac-audit .ac-cta { color: #000; background: #fff; border: 1.5px solid #000; }
+  .ac-audit .ac-cta { --ac-cta-fg: #000; --ac-cta-bg: #fff; color: #000; background: #fff; border: 1.5px solid #000; }
   .ac-audit .ac-cta h2, .ac-audit .ac-cta p { color: #000; }
+  .ac-audit .ac-shot { background: #000; }
   .ac-audit .ac-cta-print { display: block; }
   .ac-audit .ac-score, .ac-audit .ac-area, .ac-audit .ac-cta { break-inside: avoid; page-break-inside: avoid; }
   .ac-audit .ac-report { gap: 18px; }
   .ac-audit .ac-section-title { break-after: avoid; page-break-after: avoid; }
 }
 </style>
-<div class="ac-audit" id="ac-audit"
+<div class="ac-audit" id="ac-audit" data-ac-theme="dark"
      data-ac-api="https://audit-sito.ale-minotto.workers.dev"
      data-ac-contact="https://www.crearecreativita.it/parliamo/"
      data-ac-mail="info@crearecreativita.it"

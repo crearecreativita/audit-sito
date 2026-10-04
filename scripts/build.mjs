@@ -13,6 +13,7 @@ const fill = (s) => s
   .replaceAll('{{API_URL}}', cfg.apiUrl)
   .replaceAll('{{CONTACT_URL}}', cfg.contactUrl)
   .replaceAll('{{MAIL}}', cfg.mail)
+  .replaceAll('{{THEME}}', cfg.theme === 'light' ? 'light' : 'dark')
   .replaceAll('{{TURNSTILE_SITE_KEY}}', cfg.turnstileSiteKey || '');
 const block = fill(read('frontend/block.html')).trim();
 if (cfg.apiUrl.includes('TUO-ACCOUNT')) console.warn('ATTENZIONE: in config.json "apiUrl" è ancora il segnaposto. Metti l\'indirizzo del tuo Worker.');
