@@ -358,7 +358,7 @@
 
     var mailBody = 'Ciao Alessandro,\nho fatto l’analisi del mio sito ' + rep.url + ' (voto ' + rep.score + '/100) e vorrei parlarne.\n';
     var ctaActions = el('div', { 'class': 'ac-cta-actions' },
-      CONTACT ? el('a', { 'class': 'ac-btn ac-btn--lime', href: CONTACT, text: 'Vai alla pagina contatti' }) : null,
+      CONTACT ? el('a', { 'class': 'ac-btn ac-btn--brand', href: CONTACT, text: 'Vai alla pagina contatti' }) : null,
       MAIL ? el('a', { 'class': 'ac-btn ac-btn--ghost', href: 'mailto:' + MAIL + '?subject=' + encodeURIComponent('Analisi del sito ' + (rep.host || '')) + '&body=' + encodeURIComponent(mailBody), text: 'Scrivimi una mail' }) : null);
     kids.push(el('section', { 'class': 'ac-cta' },
       el('h2', { text: 'Vuoi che lo sistemi? Scrivimi' }),
