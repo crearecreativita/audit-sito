@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Analisi sito web gratis | Creare Creatività</title>
+<meta name="description" content="Analisi sito web gratis: inserisci l'indirizzo e ricevi un report con voto da 0 a 100 su velocità, mobile, SEO di base e sicurezza.">
+<link rel="canonical" href="https://www.crearecreativita.it/analisi-sito-web-gratis/">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Analisi sito web gratis | Creare Creatività">
+<meta property="og:description" content="Un report chiaro su velocità, mobile, SEO e sicurezza del tuo sito, in italiano semplice.">
+<meta name="theme-color" content="#1b1a1c">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231b1a1c'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23bff747'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="ac-audit.css">
+<style>
+  /* Be Vietnam Pro viene usato se presente; per self-hostarlo vedi README ("Font"). */
+  :root { --ac-font: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; color: #1b1a1c; background: #fff; font-family: var(--ac-font); line-height: 1.55; }
+  .pg-wrap { max-width: 880px; margin: 0 auto; padding: 0 20px; }
+  .pg-top { padding: 22px 0; border-bottom: 1px solid #e3e1e6; }
+  .pg-top a { font-weight: 700; color: #1b1a1c; text-decoration: none; }
+  .pg-top a span { background: #bff747; padding: 2px 8px; border-radius: 6px; }
+  .pg-hero { padding: 48px 0 28px; }
+  .pg-hero h1 { margin: 0 0 14px; font-size: clamp(30px, 6vw, 46px); line-height: 1.12; letter-spacing: -.01em; }
+  .pg-hero p { margin: 0; max-width: 62ch; font-size: 19px; }
+  .pg-main { padding-bottom: 56px; }
+  .pg-more { margin-top: 48px; display: grid; gap: 14px; font-size: 16px; }
+  .pg-more h2 { margin: 0; font-size: 22px; }
+  .pg-more p { margin: 0; max-width: 66ch; }
+  .pg-more a { color: #1b1a1c; text-underline-offset: 3px; }
+  .pg-foot { padding: 28px 0 40px; border-top: 1px solid #e3e1e6; font-size: 14px; color: #5b5960; }
+  .pg-foot a { color: inherit; }
+</style>
+</head>
+<body>
+<header class="pg-top"><div class="pg-wrap"><a href="https://www.crearecreativita.it/"><span>Creare Creatività</span></a></div></header>
+
+<main class="pg-wrap pg-main">
+  <section class="pg-hero">
+    <h1>Analisi sito web gratis: scopri cosa frena il tuo sito</h1>
+    <p>Scrivi l’indirizzo del tuo sito e in circa 30 secondi ricevi un report con un voto da 0 a 100: velocità, mobile, SEO di base e sicurezza. Ogni problema è spiegato in italiano semplice, con cosa significa per la tua attività e come si risolve.</p>
+  </section>
+
+  <div class="ac-audit" id="ac-audit"
+     data-ac-api="https://audit-sito.ale-minotto.workers.dev"
+     data-ac-contact="https://www.crearecreativita.it/parliamo/"
+     data-ac-mail="info@crearecreativita.it"
+     data-ac-turnstile="">
+  <form class="ac-form" novalidate>
+    <div class="ac-field">
+      <label for="ac-url">Indirizzo del tuo sito</label>
+      <input id="ac-url" name="url" type="text" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="www.tuosito.it" required>
+    </div>
+    <div class="ac-field">
+      <label for="ac-email">La tua email</label>
+      <input id="ac-email" name="email" type="email" autocomplete="email" placeholder="nome@azienda.it" required>
+      <p class="ac-hint">Ti scrivo solo per rispondere sull'analisi. Nessuna newsletter.</p>
+    </div>
+    <div class="ac-hp" aria-hidden="true">
+      <label>Lascia vuoto questo campo<input type="text" name="company_site" tabindex="-1" autocomplete="off"></label>
+    </div>
+    <div class="ac-consent">
+      <input type="checkbox" id="ac-consent" name="consent" required>
+      <label for="ac-consent">Acconsento al trattamento della mia email per ricevere risposta sull'analisi, come descritto nell'<a href="https://www.crearecreativita.it/privacy-policy/" target="_blank" rel="noopener">informativa privacy</a>.</label>
+    </div>
+    <div class="ac-turnstile"></div>
+    <p class="ac-error" role="alert" hidden></p>
+    <div><button class="ac-btn" type="submit">Analizza il mio sito</button></div>
+  </form>
+
+  <div class="ac-progress" hidden aria-live="polite">
+    <h2>Sto analizzando il tuo sito</h2>
+    <p class="ac-progress-sub">Ci vogliono dai 20 ai 40 secondi. Tieni aperta questa pagina.</p>
+    <div class="ac-bar" role="progressbar" aria-label="Avanzamento dell'analisi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="ac-bar-fill"></div></div>
+    <p class="ac-bar-num">0%</p>
+    <ul class="ac-steps"></ul>
+  </div>
+
+  <div class="ac-fail" hidden role="alert"></div>
+  <div class="ac-report" hidden tabindex="-1"></div>
+
+  <noscript><p class="ac-note">Per far partire l'analisi serve JavaScript attivo nel browser.</p></noscript>
+</div>
+
+  <section class="pg-more">
+    <h2>Cosa controllo</h2>
+    <p>Velocità da telefono e da computer, adattamento agli schermi piccoli, titolo e descrizione per Google, immagini senza descrizione, sitemap, connessione sicura, scadenza del certificato, cookie banner. Nella versione completa anche font, colori e segnali di sito trascurato.</p>
+    <p>Questa è la versione “mini tool” dello strumento. La guida completa, con le domande frequenti, è nella pagina <a href="https://www.crearecreativita.it/analisi-sito-web-gratis/">Analisi sito web gratis</a> su crearecreativita.it.</p>
+  </section>
+</main>
+
+<footer class="pg-foot"><div class="pg-wrap">
+  Creare Creatività di Alessandro Minotto, Padova ·
+  <a href="https://www.crearecreativita.it/privacy-policy/">Privacy</a> ·
+  <a href="https://www.crearecreativita.it/cookie-policy/">Cookie</a>
+</div></footer>
+
+<script src="ac-audit.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+[
+  {
+    "q": "L'analisi è davvero gratis?",
+    "a": "Sì. Non servono carte di credito né registrazioni. Ti chiedo solo l'email, per risponderti se vuoi parlare del report."
+  },
+  {
+    "q": "Cosa fai con la mia email?",
+    "a": "La salvo in un foglio privato e la uso solo per rispondere sull'analisi. Niente newsletter automatiche. I dettagli sono nell'informativa privacy."
+  },
+  {
+    "q": "Funziona anche se il sito non è fatto con WordPress?",
+    "a": "Sì. Velocità, mobile, SEO e sicurezza si misurano su qualsiasi sito. I controlli su versione di WordPress e tema compaiono solo se il sito li usa."
+  },
+  {
+    "q": "Analizzi solo la home page?",
+    "a": "Sì, la home page. È la pagina che molti vedono per prima, ma non sostituisce un controllo di tutto il sito."
+  },
+  {
+    "q": "Perché il voto cambia se ripeto l'analisi?",
+    "a": "La velocità dipende dal server e dalla rete nel momento del test, quindi può oscillare di qualche punto. Se la differenza è grande, ripeti in un altro orario."
+  },
+  {
+    "q": "Il mio sito risulta bloccato o non raggiungibile. Che faccio?",
+    "a": "Alcuni siti hanno protezioni anti-bot che fermano gli strumenti automatici. Non è un difetto del tuo sito. Scrivimi e lo guardiamo a mano."
+  },
+  {
+    "q": "Quante analisi posso fare?",
+    "a": "Fino a tre al giorno per persona e fino a tre al giorno per sito. Serve a non sovraccaricare il servizio."
+  },
+  {
+    "q": "Un voto basso vuol dire che il sito va rifatto?",
+    "a": "Quasi mai. Spesso bastano immagini più leggere, qualche correzione e una cache. Rifare il sito ha senso solo quando i problemi sono strutturali, e in quel caso te lo dico chiaro."
+  }
+]

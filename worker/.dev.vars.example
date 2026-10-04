@@ -1,0 +1,5 @@
+# Copia in .dev.vars per le prove in locale (wrangler dev). Non finisce su git.
+SIGNING_SECRET=una-stringa-lunga-a-caso-solo-per-le-prove
+ALLOWED_ORIGINS=http://localhost:8080
+PSI_ENDPOINT=http://localhost:8799/psi
+RATE_LIMIT_PER_DAY=50

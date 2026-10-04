@@ -1,0 +1,40 @@
+<div class="ac-audit" id="ac-audit"
+     data-ac-api="{{API_URL}}"
+     data-ac-contact="{{CONTACT_URL}}"
+     data-ac-mail="{{MAIL}}"
+     data-ac-turnstile="{{TURNSTILE_SITE_KEY}}">
+  <form class="ac-form" novalidate>
+    <div class="ac-field">
+      <label for="ac-url">Indirizzo del tuo sito</label>
+      <input id="ac-url" name="url" type="text" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="www.tuosito.it" required>
+    </div>
+    <div class="ac-field">
+      <label for="ac-email">La tua email</label>
+      <input id="ac-email" name="email" type="email" autocomplete="email" placeholder="nome@azienda.it" required>
+      <p class="ac-hint">Ti scrivo solo per rispondere sull'analisi. Nessuna newsletter.</p>
+    </div>
+    <div class="ac-hp" aria-hidden="true">
+      <label>Lascia vuoto questo campo<input type="text" name="company_site" tabindex="-1" autocomplete="off"></label>
+    </div>
+    <div class="ac-consent">
+      <input type="checkbox" id="ac-consent" name="consent" required>
+      <label for="ac-consent">Acconsento al trattamento della mia email per ricevere risposta sull'analisi, come descritto nell'<a href="https://www.crearecreativita.it/privacy-policy/" target="_blank" rel="noopener">informativa privacy</a>.</label>
+    </div>
+    <div class="ac-turnstile"></div>
+    <p class="ac-error" role="alert" hidden></p>
+    <div><button class="ac-btn" type="submit">Analizza il mio sito</button></div>
+  </form>
+
+  <div class="ac-progress" hidden aria-live="polite">
+    <h2>Sto analizzando il tuo sito</h2>
+    <p class="ac-progress-sub">Ci vogliono dai 20 ai 40 secondi. Tieni aperta questa pagina.</p>
+    <div class="ac-bar" role="progressbar" aria-label="Avanzamento dell'analisi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="ac-bar-fill"></div></div>
+    <p class="ac-bar-num">0%</p>
+    <ul class="ac-steps"></ul>
+  </div>
+
+  <div class="ac-fail" hidden role="alert"></div>
+  <div class="ac-report" hidden tabindex="-1"></div>
+
+  <noscript><p class="ac-note">Per far partire l'analisi serve JavaScript attivo nel browser.</p></noscript>
+</div>

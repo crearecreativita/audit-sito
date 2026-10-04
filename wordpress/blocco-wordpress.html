@@ -1,0 +1,592 @@
+<!-- Analisi sito web gratis — Creare Creatività. Incolla tutto in un blocco "HTML personalizzato". -->
+<style>
+/* Analisi sito web gratis — Creare Creatività
+   Tutti i selettori partono da .ac-audit: si può incollare in WordPress senza conflitti col tema. */
+.ac-audit, .ac-audit *, .ac-audit *::before, .ac-audit *::after { box-sizing: border-box; }
+.ac-audit {
+  --ac-ink: #1b1a1c;
+  --ac-muted: #5b5960;
+  --ac-line: #e3e1e6;
+  --ac-soft: #f6f5f7;
+  --ac-bg: #ffffff;
+  --ac-lime: #bff747;
+  --ac-lime-dark: #4f7a00;
+  --ac-pink: #c4124f;
+  --ac-pink-soft: #fde8ef;
+  --ac-amber: #8a5a00;
+  --ac-amber-soft: #fdf1d6;
+  --ac-slate: #4a4f59;
+  --ac-slate-soft: #eceef2;
+  --ac-radius: 14px;
+  display: block;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0;
+  color: var(--ac-ink);
+  background: transparent;
+  font-family: var(--ac-font, inherit);
+  font-size: 17px;
+  line-height: 1.55;
+  text-align: left;
+}
+.ac-audit [hidden] { display: none !important; }
+.ac-audit p, .ac-audit ul, .ac-audit ol, .ac-audit h2, .ac-audit h3, .ac-audit h4 { margin: 0; padding: 0; }
+.ac-audit ul, .ac-audit ol { list-style: none; }
+.ac-audit a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+/* Form */
+.ac-audit .ac-form { display: grid; gap: 18px; padding: 28px; background: var(--ac-soft); border: 1px solid var(--ac-line); border-radius: var(--ac-radius); }
+.ac-audit .ac-field label { display: block; margin: 0 0 6px; font-weight: 600; font-size: 15px; }
+.ac-audit .ac-field input[type="text"], .ac-audit .ac-field input[type="email"] {
+  display: block; width: 100%; height: 52px; margin: 0; padding: 0 16px;
+  font: inherit; font-size: 17px; color: var(--ac-ink); background: var(--ac-bg);
+  border: 1.5px solid #b9b6bf; border-radius: 10px; box-shadow: none; outline: none; appearance: none;
+}
+.ac-audit .ac-field input:focus { border-color: var(--ac-ink); box-shadow: 0 0 0 3px var(--ac-lime); }
+.ac-audit .ac-hint { margin-top: 6px; font-size: 14px; color: var(--ac-muted); }
+.ac-audit .ac-hp { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; overflow: hidden; }
+.ac-audit .ac-consent { display: grid; grid-template-columns: 24px 1fr; gap: 12px; align-items: start; font-size: 15px; }
+.ac-audit .ac-consent input { width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--ac-ink); }
+.ac-audit .ac-consent label { margin: 0; font-weight: 400; }
+.ac-audit .ac-error { padding: 12px 16px; font-size: 15px; color: #6d0a2c; background: var(--ac-pink-soft); border-left: 4px solid var(--ac-pink); border-radius: 6px; }
+.ac-audit .ac-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; margin: 0; padding: 0 28px;
+  font: inherit; font-size: 17px; font-weight: 700; line-height: 1.2; letter-spacing: 0; text-transform: none; text-decoration: none;
+  color: var(--ac-lime); background: var(--ac-ink); border: 2px solid var(--ac-ink); border-radius: 999px; box-shadow: none; cursor: pointer;
+}
+.ac-audit .ac-btn:hover { background: #000; }
+.ac-audit .ac-btn:focus-visible { outline: 3px solid var(--ac-lime); outline-offset: 2px; box-shadow: 0 0 0 5px var(--ac-ink); }
+.ac-audit .ac-btn[disabled] { opacity: .55; cursor: wait; }
+.ac-audit .ac-btn--ghost { color: var(--ac-ink); background: transparent; }
+.ac-audit .ac-btn--ghost:hover { color: var(--ac-ink); background: var(--ac-lime); }
+.ac-audit .ac-btn--lime { color: var(--ac-ink); background: var(--ac-lime); border-color: var(--ac-lime); }
+.ac-audit .ac-btn--lime:hover { color: var(--ac-ink); background: #d3ff70; }
+.ac-audit .ac-btn--small { min-height: 42px; padding: 0 20px; font-size: 15px; }
+/* Avanzamento */
+.ac-audit .ac-progress { padding: 28px; background: var(--ac-soft); border: 1px solid var(--ac-line); border-radius: var(--ac-radius); }
+.ac-audit .ac-progress h2 { font-size: 22px; line-height: 1.25; margin-bottom: 4px; }
+.ac-audit .ac-progress-sub { color: var(--ac-muted); font-size: 15px; margin-bottom: 18px; }
+.ac-audit .ac-bar { position: relative; height: 12px; overflow: hidden; background: #dcd9e0; border-radius: 99px; }
+.ac-audit .ac-bar-fill { height: 100%; width: 0; background: var(--ac-ink); border-radius: 99px; transition: width .35s ease; }
+.ac-audit .ac-bar-num { margin-top: 8px; font-size: 14px; font-variant-numeric: tabular-nums; color: var(--ac-muted); }
+.ac-audit .ac-steps { display: grid; gap: 8px; margin-top: 18px; font-size: 15px; }
+.ac-audit .ac-steps li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: center; color: var(--ac-muted); }
+.ac-audit .ac-steps li::before { content: ""; width: 14px; height: 14px; margin-left: 4px; border: 2px solid #b9b6bf; border-radius: 50%; }
+.ac-audit .ac-steps li.is-active { color: var(--ac-ink); font-weight: 600; }
+.ac-audit .ac-steps li.is-active::before { border-color: var(--ac-ink); background: var(--ac-lime); }
+.ac-audit .ac-steps li.is-done { color: var(--ac-ink); }
+.ac-audit .ac-steps li.is-done::before { border-color: var(--ac-ink); background: var(--ac-ink); }
+.ac-audit .ac-steps li.is-fail::before { border-color: var(--ac-pink); background: var(--ac-pink-soft); }
+/* Errore a tutta pagina */
+.ac-audit .ac-fail { padding: 28px; background: var(--ac-soft); border: 1px solid var(--ac-line); border-radius: var(--ac-radius); }
+.ac-audit .ac-fail h2 { font-size: 22px; margin-bottom: 8px; }
+.ac-audit .ac-fail p { margin-bottom: 18px; }
+.ac-audit .ac-fail-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+/* Report */
+.ac-audit .ac-report { display: grid; gap: 28px; }
+.ac-audit .ac-report:focus { outline: none; }
+.ac-audit .ac-r-head { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: flex-end; justify-content: space-between; }
+.ac-audit .ac-r-head h2 { font-size: 26px; line-height: 1.2; overflow-wrap: anywhere; }
+.ac-audit .ac-r-date { margin-top: 4px; font-size: 14px; color: var(--ac-muted); }
+.ac-audit .ac-r-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.ac-audit .ac-score { display: grid; grid-template-columns: 150px 1fr; gap: 28px; align-items: center; padding: 28px; border: 1px solid var(--ac-line); border-radius: var(--ac-radius); background: var(--ac-bg); }
+.ac-audit .ac-ring { --p: 0; --c: var(--ac-ink); position: relative; display: grid; place-items: center; width: 150px; height: 150px; border-radius: 50%;
+  background: conic-gradient(var(--c) calc(var(--p) * 1%), var(--ac-slate-soft) 0); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.ac-audit .ac-ring::before { content: ""; position: absolute; inset: 14px; border-radius: 50%; background: var(--ac-bg); }
+.ac-audit .ac-ring-num { position: relative; font-size: 44px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.ac-audit .ac-ring-num small { display: block; margin-top: 4px; font-size: 13px; font-weight: 500; color: var(--ac-muted); }
+.ac-audit .ac-ring--buona { --c: #7fc200; }
+.ac-audit .ac-ring--rinforzare { --c: #e0a100; }
+.ac-audit .ac-ring--rifare { --c: #e0245e; }
+.ac-audit .ac-label { display: inline-block; margin-bottom: 10px; padding: 4px 14px; font-size: 15px; font-weight: 700; border-radius: 99px; background: var(--ac-slate-soft); }
+.ac-audit .ac-label--buona { background: var(--ac-lime); }
+.ac-audit .ac-label--rinforzare { background: var(--ac-amber-soft); color: var(--ac-amber); }
+.ac-audit .ac-label--rifare { background: var(--ac-pink-soft); color: var(--ac-pink); }
+.ac-audit .ac-score p { font-size: 18px; }
+.ac-audit .ac-counts { margin-top: 12px; font-size: 14px; color: var(--ac-muted); }
+.ac-audit .ac-section-title { font-size: 22px; line-height: 1.25; margin-bottom: 4px; }
+.ac-audit .ac-section-sub { color: var(--ac-muted); font-size: 15px; margin-bottom: 16px; }
+.ac-audit .ac-areas { display: grid; gap: 16px; }
+.ac-audit .ac-area { padding: 22px; border: 1px solid var(--ac-line); border-radius: var(--ac-radius); background: var(--ac-bg); }
+.ac-audit .ac-area-top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.ac-audit .ac-area h3 { font-size: 19px; line-height: 1.3; }
+.ac-audit .ac-area-score { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ac-audit .ac-area-score small { font-size: 14px; font-weight: 500; color: var(--ac-muted); }
+.ac-audit .ac-area-intro { margin: 2px 0 12px; font-size: 15px; color: var(--ac-muted); }
+.ac-audit .ac-meter { height: 8px; overflow: hidden; background: var(--ac-slate-soft); border-radius: 99px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.ac-audit .ac-meter > i { display: block; height: 100%; background: var(--ac-ink); border-radius: 99px; }
+.ac-audit .ac-meter--buona > i { background: #7fc200; }
+.ac-audit .ac-meter--rinforzare > i { background: #e0a100; }
+.ac-audit .ac-meter--rifare > i { background: #e0245e; }
+.ac-audit .ac-area-grid { display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 16px; }
+.ac-audit .ac-area-grid--shot { grid-template-columns: 1fr 190px; align-items: start; }
+.ac-audit .ac-rows { display: grid; gap: 0; }
+.ac-audit .ac-row { display: grid; grid-template-columns: 1fr auto; gap: 2px 16px; padding: 10px 0; border-top: 1px solid var(--ac-line); font-size: 15px; }
+.ac-audit .ac-row:first-child { border-top: 0; }
+.ac-audit .ac-row-label { font-weight: 600; }
+.ac-audit .ac-row-value { display: inline-flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; text-align: right; }
+.ac-audit .ac-row-value::before { content: ""; flex: none; width: 10px; height: 10px; border-radius: 50%; background: #b9b6bf; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.ac-audit .ac-row--ok .ac-row-value::before { background: #7fc200; }
+.ac-audit .ac-row--warn .ac-row-value::before { background: #e0a100; }
+.ac-audit .ac-row--bad .ac-row-value::before { background: #e0245e; }
+.ac-audit .ac-row-hint { grid-column: 1 / -1; font-size: 14px; color: var(--ac-muted); overflow-wrap: anywhere; }
+.ac-audit .ac-shot { margin: 0; padding: 10px; background: var(--ac-ink); border-radius: 26px; }
+.ac-audit .ac-shot img { display: block; width: 100%; height: auto; border-radius: 16px; background: #fff; }
+.ac-audit .ac-shot figcaption { margin-top: 8px; font-size: 12px; text-align: center; color: #cfcdd3; }
+/* Problemi */
+.ac-audit .ac-issues { display: grid; gap: 14px; }
+.ac-audit .ac-issue { padding: 20px 22px; border: 1px solid var(--ac-line); border-left-width: 5px; border-radius: var(--ac-radius); background: var(--ac-bg); break-inside: avoid; page-break-inside: avoid; }
+.ac-audit .ac-issue--alta { border-left-color: var(--ac-pink); }
+.ac-audit .ac-issue--media { border-left-color: #e0a100; }
+.ac-audit .ac-issue--bassa { border-left-color: #9aa1ad; }
+.ac-audit .ac-issue-top { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-bottom: 8px; }
+.ac-audit .ac-sev { padding: 2px 12px; font-size: 13px; font-weight: 700; letter-spacing: .02em; border-radius: 99px; white-space: nowrap; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.ac-audit .ac-sev--alta { color: #6d0a2c; background: var(--ac-pink-soft); }
+.ac-audit .ac-sev--media { color: var(--ac-amber); background: var(--ac-amber-soft); }
+.ac-audit .ac-sev--bassa { color: var(--ac-slate); background: var(--ac-slate-soft); }
+.ac-audit .ac-issue-area { font-size: 13px; color: var(--ac-muted); }
+.ac-audit .ac-issue h3 { font-size: 18px; line-height: 1.35; margin-bottom: 8px; }
+.ac-audit .ac-issue p { font-size: 15.5px; }
+.ac-audit .ac-issue p + p { margin-top: 6px; }
+.ac-audit .ac-issue strong { font-weight: 700; }
+.ac-audit .ac-good { display: grid; gap: 6px 24px; grid-template-columns: repeat(2, 1fr); font-size: 15px; }
+.ac-audit .ac-good li { position: relative; padding-left: 26px; }
+.ac-audit .ac-good li::before { content: ""; position: absolute; left: 4px; top: .45em; width: 12px; height: 7px; border-left: 2.5px solid #5d9400; border-bottom: 2.5px solid #5d9400; transform: rotate(-45deg); }
+.ac-audit .ac-swatches { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.ac-audit .ac-swatch { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ac-muted); }
+.ac-audit .ac-swatch i { width: 22px; height: 22px; border: 1px solid rgba(0,0,0,.18); border-radius: 6px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+/* Invito finale */
+.ac-audit .ac-cta { padding: 30px; color: #fff; background: var(--ac-ink); border-radius: var(--ac-radius); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.ac-audit .ac-cta h2 { font-size: 24px; line-height: 1.25; margin-bottom: 8px; color: #fff; }
+.ac-audit .ac-cta p { max-width: 60ch; color: #e7e5ea; }
+.ac-audit .ac-cta-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+.ac-audit .ac-cta .ac-btn--ghost { color: #fff; border-color: #fff; }
+.ac-audit .ac-cta .ac-btn--ghost:hover { color: var(--ac-ink); background: #fff; }
+.ac-audit .ac-cta-print { display: none; margin-top: 12px; font-size: 14px; }
+.ac-audit .ac-note { font-size: 13.5px; color: var(--ac-muted); }
+@media (max-width: 640px) {
+  .ac-audit { font-size: 16px; }
+  .ac-audit .ac-form, .ac-audit .ac-progress, .ac-audit .ac-fail { padding: 20px; }
+  .ac-audit .ac-score { grid-template-columns: 1fr; justify-items: start; padding: 22px; gap: 18px; }
+  .ac-audit .ac-ring { width: 130px; height: 130px; }
+  .ac-audit .ac-area-grid--shot { grid-template-columns: 1fr; }
+  .ac-audit .ac-shot { max-width: 220px; }
+  .ac-audit .ac-good { grid-template-columns: 1fr; }
+  .ac-audit .ac-r-head h2 { font-size: 22px; }
+  .ac-audit .ac-cta { padding: 22px; }
+  .ac-audit .ac-btn { width: 100%; }
+  .ac-audit .ac-btn--small { width: auto; }
+}
+/* Stampa / PDF: il JS nasconde tutto il resto della pagina, qui si pulisce il report */
+.ac-print-hide { display: none !important; }
+@media print {
+  .ac-audit { max-width: none; font-size: 11.5pt; color: #000; }
+  .ac-audit .ac-r-actions, .ac-audit .ac-cta-actions, .ac-audit .ac-no-print { display: none !important; }
+  .ac-audit .ac-cta { color: #000; background: #fff; border: 1.5px solid #000; }
+  .ac-audit .ac-cta h2, .ac-audit .ac-cta p { color: #000; }
+  .ac-audit .ac-cta-print { display: block; }
+  .ac-audit .ac-score, .ac-audit .ac-area, .ac-audit .ac-cta { break-inside: avoid; page-break-inside: avoid; }
+  .ac-audit .ac-report { gap: 18px; }
+  .ac-audit .ac-section-title { break-after: avoid; page-break-after: avoid; }
+}
+</style>
+<div class="ac-audit" id="ac-audit"
+     data-ac-api="https://audit-sito.ale-minotto.workers.dev"
+     data-ac-contact="https://www.crearecreativita.it/parliamo/"
+     data-ac-mail="info@crearecreativita.it"
+     data-ac-turnstile="">
+  <form class="ac-form" novalidate>
+    <div class="ac-field">
+      <label for="ac-url">Indirizzo del tuo sito</label>
+      <input id="ac-url" name="url" type="text" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="www.tuosito.it" required>
+    </div>
+    <div class="ac-field">
+      <label for="ac-email">La tua email</label>
+      <input id="ac-email" name="email" type="email" autocomplete="email" placeholder="nome@azienda.it" required>
+      <p class="ac-hint">Ti scrivo solo per rispondere sull'analisi. Nessuna newsletter.</p>
+    </div>
+    <div class="ac-hp" aria-hidden="true">
+      <label>Lascia vuoto questo campo<input type="text" name="company_site" tabindex="-1" autocomplete="off"></label>
+    </div>
+    <div class="ac-consent">
+      <input type="checkbox" id="ac-consent" name="consent" required>
+      <label for="ac-consent">Acconsento al trattamento della mia email per ricevere risposta sull'analisi, come descritto nell'<a href="https://www.crearecreativita.it/privacy-policy/" target="_blank" rel="noopener">informativa privacy</a>.</label>
+    </div>
+    <div class="ac-turnstile"></div>
+    <p class="ac-error" role="alert" hidden></p>
+    <div><button class="ac-btn" type="submit">Analizza il mio sito</button></div>
+  </form>
+  <div class="ac-progress" hidden aria-live="polite">
+    <h2>Sto analizzando il tuo sito</h2>
+    <p class="ac-progress-sub">Ci vogliono dai 20 ai 40 secondi. Tieni aperta questa pagina.</p>
+    <div class="ac-bar" role="progressbar" aria-label="Avanzamento dell'analisi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="ac-bar-fill"></div></div>
+    <p class="ac-bar-num">0%</p>
+    <ul class="ac-steps"></ul>
+  </div>
+  <div class="ac-fail" hidden role="alert"></div>
+  <div class="ac-report" hidden tabindex="-1"></div>
+  <noscript><p class="ac-note">Per far partire l'analisi serve JavaScript attivo nel browser.</p></noscript>
+</div>
+<script>
+/* Analisi sito web gratis — Creare Creatività
+   JavaScript autonomo (nessuna dipendenza). Tutto vive dentro #ac-audit. */
+(function () {
+  'use strict';
+  var root = document.getElementById('ac-audit');
+  if (!root || root.getAttribute('data-ac-ready')) return;
+  root.setAttribute('data-ac-ready', '1');
+  var API = (root.getAttribute('data-ac-api') || '').replace(/\/$/, '');
+  var CONTACT = root.getAttribute('data-ac-contact') || '';
+  var MAIL = root.getAttribute('data-ac-mail') || '';
+  var TURNSTILE_KEY = root.getAttribute('data-ac-turnstile') || '';
+  var form = root.querySelector('.ac-form');
+  var urlInput = root.querySelector('#ac-url');
+  var emailInput = root.querySelector('#ac-email');
+  var consentInput = root.querySelector('#ac-consent');
+  var hpInput = root.querySelector('.ac-hp input');
+  var errorBox = root.querySelector('.ac-error');
+  var submitBtn = form.querySelector('button[type="submit"]');
+  var progress = root.querySelector('.ac-progress');
+  var bar = root.querySelector('.ac-bar');
+  var barFill = root.querySelector('.ac-bar-fill');
+  var barNum = root.querySelector('.ac-bar-num');
+  var stepsList = root.querySelector('.ac-steps');
+  var failBox = root.querySelector('.ac-fail');
+  var reportBox = root.querySelector('.ac-report');
+  var loadedAt = (window.performance && performance.now) ? performance.now() : 0;
+  /* ───────── utilità ───────── */
+  function el(tag, attrs) {
+    var node = document.createElement(tag);
+    if (attrs) for (var k in attrs) {
+      if (k === 'class') node.className = attrs[k];
+      else if (k === 'text') node.textContent = attrs[k];
+      else node.setAttribute(k, attrs[k]);
+    }
+    for (var i = 2; i < arguments.length; i++) {
+      var c = arguments[i];
+      if (c == null || c === false) continue;
+      node.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+    }
+    return node;
+  }
+  function show(node, on) { if (on) node.removeAttribute('hidden'); else node.setAttribute('hidden', ''); }
+  function showError(msg) { errorBox.textContent = msg; show(errorBox, true); }
+  /* ───────── Turnstile (facoltativo) ───────── */
+  var turnstileId = null;
+  var turnstileToken = '';
+  if (TURNSTILE_KEY) {
+    window.acTurnstileReady = function () {
+      if (!window.turnstile) return;
+      turnstileId = window.turnstile.render(root.querySelector('.ac-turnstile'), {
+        sitekey: TURNSTILE_KEY,
+        callback: function (t) { turnstileToken = t; },
+        'expired-callback': function () { turnstileToken = ''; }
+      });
+    };
+    var s = document.createElement('script');
+    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=acTurnstileReady';
+    s.async = true; s.defer = true;
+    document.head.appendChild(s);
+  }
+  /* ───────── chiamate al Worker ───────── */
+  function api(path, body, timeoutMs) {
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs || 30000) : null;
+    return fetch(API + path, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function (res) {
+      return res.json().catch(function () { return { ok: false, error: { code: 'bad_response', message: 'Risposta non valida dal server.' } }; });
+    }).then(function (data) {
+      if (!data || data.ok === false) {
+        var err = new Error((data && data.error && data.error.message) || 'Errore imprevisto.');
+        err.code = data && data.error && data.error.code;
+        throw err;
+      }
+      return data;
+    }, function (e) {
+      var err = new Error(e && e.name === 'AbortError'
+        ? "L'analisi sta impiegando troppo tempo. Riprova tra qualche minuto."
+        : 'Non riesco a collegarmi al servizio. Controlla la connessione e riprova.');
+      err.code = e && e.name === 'AbortError' ? 'timeout' : 'network';
+      throw err;
+    }).then(function (d) { if (timer) clearTimeout(timer); return d; }, function (e) { if (timer) clearTimeout(timer); throw e; });
+  }
+  /* ───────── avanzamento ───────── */
+  var STEP_DEFS = [
+    { id: 'psiMobile', label: 'Misuro la velocità da telefono', share: 0.34, eta: 30 },
+    { id: 'psiDesktop', label: 'Misuro la velocità da computer', share: 0.18, eta: 25 },
+    { id: 'site', label: 'Leggo titolo, descrizione e struttura della pagina', share: 0.2, eta: 7 },
+    { id: 'ssl', label: 'Controllo il certificato di sicurezza', share: 0.06, eta: 5 },
+    { id: 'style', label: 'Guardo font, colori e segnali di manutenzione', share: 0.17, eta: 9, after: 'site' }
+  ];
+  var FINISH_SHARE = 0.05;
+  function Tracker() {
+    this.state = {}; // id → 'pending' | 'running' | 'done' | 'fail'
+    this.t0 = {};
+    this.finishing = false;
+    this.pct = 0;
+    var self = this;
+    this.items = {};
+    stepsList.textContent = '';
+    STEP_DEFS.forEach(function (d) {
+      self.state[d.id] = 'pending';
+      var li = el('li', { text: d.label });
+      self.items[d.id] = li;
+      stepsList.appendChild(li);
+    });
+    this.timer = setInterval(function () { self.render(); }, 250);
+    this.render();
+  }
+  Tracker.prototype.start = function (id) { this.state[id] = 'running'; this.t0[id] = Date.now(); };
+  Tracker.prototype.end = function (id, ok) { this.state[id] = ok ? 'done' : 'fail'; this.render(); };
+  Tracker.prototype.render = function () {
+    var total = 0, self = this, firstActive = false;
+    STEP_DEFS.forEach(function (d) {
+      var st = self.state[d.id];
+      if (st === 'done' || st === 'fail') total += d.share;
+      else if (st === 'running') {
+        var f = Math.min(0.92, (Date.now() - self.t0[d.id]) / 1000 / d.eta);
+        total += d.share * (1 - Math.pow(1 - f, 2));
+      }
+      var li = self.items[d.id];
+      li.className = st === 'done' ? 'is-done' : st === 'fail' ? 'is-fail' : st === 'running' ? 'is-active' : '';
+    });
+    if (this.finishing) total += FINISH_SHARE * 0.6;
+    var pct = Math.max(this.pct, Math.min(98, Math.round(total * 100)));
+    this.pct = pct;
+    barFill.style.width = pct + '%';
+    barNum.textContent = pct + '%';
+    bar.setAttribute('aria-valuenow', String(pct));
+  };
+  Tracker.prototype.complete = function () {
+    clearInterval(this.timer);
+    this.pct = 100; barFill.style.width = '100%'; barNum.textContent = '100%'; bar.setAttribute('aria-valuenow', '100');
+  };
+  Tracker.prototype.stop = function () { clearInterval(this.timer); };
+  /* ───────── flusso principale ───────── */
+  var running = false;
+  form.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    if (running) return;
+    show(errorBox, false);
+    var url = urlInput.value.trim();
+    var email = emailInput.value.trim();
+    if (!url) { showError("Scrivi l'indirizzo del tuo sito."); urlInput.focus(); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { showError("L'indirizzo email non sembra corretto."); emailInput.focus(); return; }
+    if (!consentInput.checked) { showError("Per procedere serve spuntare il consenso al trattamento dell'email."); consentInput.focus(); return; }
+    if (TURNSTILE_KEY && !turnstileToken) { showError('Completa la verifica anti-robot qui sopra.'); return; }
+    running = true;
+    submitBtn.disabled = true;
+    var elapsed = (window.performance && performance.now) ? performance.now() - loadedAt : 99999;
+    api('/api/start', { url: url, email: email, consent: true, hp: hpInput.value, elapsed: Math.round(elapsed), turnstile: turnstileToken }, 20000)
+      .then(function (start) { runAnalysis(start, url); })
+      .catch(function (e) {
+        running = false; submitBtn.disabled = false;
+        showError(e.message);
+        if (window.turnstile && turnstileId !== null) { window.turnstile.reset(turnstileId); turnstileToken = ''; }
+      });
+  });
+  function runAnalysis(start, typedUrl) {
+    show(form, false); show(progress, true); show(failBox, false); show(reportBox, false);
+    progress.scrollIntoView && progress.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    var tracker = new Tracker();
+    var results = {};
+    var screenshot = null;
+    var abort = null;
+    function step(id, extra) {
+      tracker.start(id);
+      var body = { token: start.token, step: id };
+      if (extra) for (var k in extra) body[k] = extra[k];
+      return api('/api/step', body, 110000).then(function (r) {
+        results[id] = { payload: r.payload, sig: r.sig };
+        if (r.screenshot) screenshot = r.screenshot;
+        var ok = true;
+        try { ok = JSON.parse(r.payload).ok; } catch (e) { ok = false; }
+        tracker.end(id, ok);
+      }, function (e) {
+        tracker.end(id, false);
+        if (e.code === 'token_invalid' || e.code === 'token_expired') abort = e;
+      });
+    }
+    var siteP = step('site').then(function () {
+      var siteOk = false;
+      try { siteOk = results.site && JSON.parse(results.site.payload).ok; } catch (e) { siteOk = false; }
+      if (siteOk && !abort) return step('style', { site: results.site });
+      tracker.end('style', false);
+    });
+    Promise.all([step('psiMobile'), step('psiDesktop'), siteP, step('ssl')]).then(function () {
+      if (abort) throw abort;
+      tracker.finishing = true;
+      return api('/api/finish', { token: start.token, steps: results }, 30000);
+    }).then(function (fin) {
+      tracker.complete();
+      setTimeout(function () {
+        show(progress, false);
+        renderReport(fin.report, screenshot);
+        running = false;
+      }, 400);
+    }).catch(function (e) {
+      tracker.stop();
+      show(progress, false);
+      showFail(e.message || 'Non sono riuscito a completare l\'analisi.', typedUrl);
+      running = false;
+    });
+  }
+  function resetForm() {
+    show(failBox, false); show(reportBox, false); show(progress, false); show(form, true);
+    submitBtn.disabled = false; running = false; show(errorBox, false);
+    if (window.turnstile && turnstileId !== null) { window.turnstile.reset(turnstileId); turnstileToken = ''; }
+    form.scrollIntoView && form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    urlInput.focus();
+  }
+  function showFail(message, typedUrl) {
+    failBox.textContent = '';
+    failBox.appendChild(el('h2', { text: "Non sono riuscito a completare l'analisi" }));
+    failBox.appendChild(el('p', { text: message }));
+    var actions = el('div', { 'class': 'ac-fail-actions' },
+      el('button', { 'class': 'ac-btn ac-btn--small', type: 'button', text: 'Riprova con un altro indirizzo' }),
+      MAIL ? el('a', { 'class': 'ac-btn ac-btn--ghost ac-btn--small', href: 'mailto:' + MAIL + '?subject=' + encodeURIComponent('Analisi del sito ' + (typedUrl || '')), text: 'Scrivimi, lo guardiamo insieme' }) : null);
+    actions.firstChild.addEventListener('click', resetForm);
+    failBox.appendChild(actions);
+    show(failBox, true);
+    failBox.scrollIntoView && failBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  /* ───────── report ───────── */
+  var AREA_NAMES = { speed: 'Velocità', mobile: 'Mobile', seo: 'SEO', trust: 'Sicurezza', identity: 'Identità visiva', care: 'Manutenzione' };
+  var SEV_TEXT = { alta: 'Priorità alta', media: 'Priorità media', bassa: 'Priorità bassa' };
+  function tone(score) { return score >= 80 ? 'buona' : score >= 50 ? 'rinforzare' : 'rifare'; }
+  function rowsList(rows) {
+    var ul = el('ul', { 'class': 'ac-rows' });
+    (rows || []).forEach(function (r) {
+      var li = el('li', { 'class': 'ac-row ac-row--' + (r.status || 'na') },
+        el('span', { 'class': 'ac-row-label', text: r.label }),
+        el('span', { 'class': 'ac-row-value', text: String(r.value) }));
+      if (r.hint) li.appendChild(el('span', { 'class': 'ac-row-hint', text: r.hint }));
+      if (r.swatches && r.swatches.length) {
+        var sw = el('span', { 'class': 'ac-swatches ac-row-hint' });
+        r.swatches.forEach(function (c) {
+          var chip = el('i'); chip.style.background = /^#[0-9a-f]{6}$/i.test(c.hex) ? c.hex : '#ccc';
+          sw.appendChild(el('span', { 'class': 'ac-swatch' }, chip, c.hex.toUpperCase()));
+        });
+        li.appendChild(sw);
+      }
+      ul.appendChild(li);
+    });
+    return ul;
+  }
+  function areaCard(a, shot) {
+    var hasScore = typeof a.score === 'number';
+    var top = el('div', { 'class': 'ac-area-top' },
+      a.name ? el('h3', { text: a.name }) : null,
+      hasScore ? el('span', { 'class': 'ac-area-score' }, String(a.score), el('small', { text: ' / 100' })) : null);
+    var card = el('div', { 'class': 'ac-area' }, (a.name || hasScore) ? top : null, a.intro ? el('p', { 'class': 'ac-area-intro', text: a.intro }) : null);
+    if (hasScore) {
+      var m = el('div', { 'class': 'ac-meter ac-meter--' + tone(a.score), role: 'img', 'aria-label': 'Punteggio ' + a.score + ' su 100' }, el('i'));
+      m.firstChild.style.width = a.score + '%';
+      card.appendChild(m);
+    }
+    var grid = el('div', { 'class': 'ac-area-grid' + (shot ? ' ac-area-grid--shot' : '') }, rowsList(a.rows));
+    if (shot) {
+      grid.appendChild(el('figure', { 'class': 'ac-shot' },
+        el('img', { src: shot, alt: 'Come appare il tuo sito su un telefono', loading: 'lazy' }),
+        el('figcaption', { text: 'Il tuo sito da telefono' })));
+    }
+    card.appendChild(grid);
+    return card;
+  }
+  function issueCard(i) {
+    return el('article', { 'class': 'ac-issue ac-issue--' + i.severity },
+      el('div', { 'class': 'ac-issue-top' },
+        el('span', { 'class': 'ac-sev ac-sev--' + i.severity, text: SEV_TEXT[i.severity] || i.severity }),
+        el('span', { 'class': 'ac-issue-area', text: AREA_NAMES[i.area] || '' })),
+      el('h3', { text: i.title }),
+      el('p', null, el('strong', { text: 'Cosa significa. ' }), i.meaning),
+      el('p', null, el('strong', { text: 'Perché conta per la tua attività. ' }), i.why),
+      el('p', null, el('strong', { text: 'Come si risolve. ' }), i.fix));
+  }
+  function renderReport(rep, screenshot) {
+    reportBox.textContent = '';
+    var date = new Date(rep.generatedAt).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+    var kids = [];
+    var printBtn = el('button', { 'class': 'ac-btn ac-btn--ghost ac-btn--small', type: 'button', text: 'Stampa o salva in PDF' });
+    printBtn.addEventListener('click', function () { preparePrint(); window.print(); cleanupPrint(); });
+    var againBtn = el('button', { 'class': 'ac-btn ac-btn--ghost ac-btn--small', type: 'button', text: 'Analizza un altro sito' });
+    againBtn.addEventListener('click', resetForm);
+    kids.push(el('div', { 'class': 'ac-r-head' },
+      el('div', null, el('h2', { text: 'Analisi di ' + (rep.host || rep.url) }), el('p', { 'class': 'ac-r-date', text: 'Eseguita il ' + date + ' · crearecreativita.it' })),
+      el('div', { 'class': 'ac-r-actions' }, printBtn, againBtn)));
+    var t = tone(rep.score);
+    var counts = [];
+    if (rep.counts.alta) counts.push(rep.counts.alta + ' ad alta priorità');
+    if (rep.counts.media) counts.push(rep.counts.media + ' a media priorità');
+    if (rep.counts.bassa) counts.push(rep.counts.bassa + ' a bassa priorità');
+    var ring = el('div', { 'class': 'ac-ring ac-ring--' + t, role: 'img', 'aria-label': 'Voto ' + rep.score + ' su 100' },
+      el('div', { 'class': 'ac-ring-num' }, String(rep.score), el('small', { text: 'su 100' })));
+    ring.style.setProperty('--p', String(rep.score));
+    kids.push(el('section', { 'class': 'ac-score' }, ring,
+      el('div', null,
+        el('span', { 'class': 'ac-label ac-label--' + t, text: rep.label.text }),
+        el('p', { text: rep.summary }),
+        counts.length ? el('p', { 'class': 'ac-counts', text: 'Punti da sistemare: ' + counts.join(', ') + '.' }) : null)));
+    var areas = el('div', { 'class': 'ac-areas' });
+    rep.areas.forEach(function (a) { areas.appendChild(areaCard(a, a.id === 'mobile' ? screenshot : null)); });
+    kids.push(el('section', null,
+      el('h2', { 'class': 'ac-section-title', text: 'Le quattro aree' }),
+      el('p', { 'class': 'ac-section-sub', text: 'Ogni area ha un voto da 0 a 100, calcolato su misure reali.' }), areas));
+    (rep.sections || []).forEach(function (s) {
+      kids.push(el('section', null,
+        el('h2', { 'class': 'ac-section-title', text: s.name }),
+        s.intro ? el('p', { 'class': 'ac-section-sub', text: s.intro }) : null,
+        el('div', { 'class': 'ac-areas' }, areaCard(Object.assign({}, s, { name: '', score: undefined, intro: '' })))));
+    });
+    if (rep.issues.length) {
+      var list = el('div', { 'class': 'ac-issues' });
+      rep.issues.forEach(function (i) { list.appendChild(issueCard(i)); });
+      kids.push(el('section', null,
+        el('h2', { 'class': 'ac-section-title', text: 'Cosa sistemerei, in ordine di urgenza' }),
+        el('p', { 'class': 'ac-section-sub', text: 'Sono occasioni di miglioramento: partendo dall’alto si ottiene di più con meno lavoro.' }), list));
+    }
+    if (rep.passed.length) {
+      var good = el('ul', { 'class': 'ac-good' });
+      rep.passed.forEach(function (p) { good.appendChild(el('li', { text: p })); });
+      kids.push(el('section', null, el('h2', { 'class': 'ac-section-title', text: 'Cosa va già bene' }), good));
+    }
+    var mailBody = 'Ciao Alessandro,\nho fatto l’analisi del mio sito ' + rep.url + ' (voto ' + rep.score + '/100) e vorrei parlarne.\n';
+    var ctaActions = el('div', { 'class': 'ac-cta-actions' },
+      CONTACT ? el('a', { 'class': 'ac-btn ac-btn--lime', href: CONTACT, text: 'Vai alla pagina contatti' }) : null,
+      MAIL ? el('a', { 'class': 'ac-btn ac-btn--ghost', href: 'mailto:' + MAIL + '?subject=' + encodeURIComponent('Analisi del sito ' + (rep.host || '')) + '&body=' + encodeURIComponent(mailBody), text: 'Scrivimi una mail' }) : null);
+    kids.push(el('section', { 'class': 'ac-cta' },
+      el('h2', { text: 'Vuoi che lo sistemi? Scrivimi' }),
+      el('p', { text: 'Sono Alessandro, grafico e web designer a Padova. Se vuoi, guardiamo insieme questo report e ti dico cosa farei per primo, senza impegno.' }),
+      ctaActions,
+      el('p', { 'class': 'ac-cta-print', text: [MAIL, CONTACT].filter(Boolean).join(' · ') })));
+    kids.push(el('p', { 'class': 'ac-note', text: 'Analisi automatica della home page, fatta con gli strumenti di Google (PageSpeed Insights) e con controlli propri. È un punto di partenza, non una perizia: alcuni dettagli vanno guardati a mano.' }));
+    kids.forEach(function (k) { reportBox.appendChild(k); });
+    show(reportBox, true);
+    reportBox.scrollIntoView && reportBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    reportBox.focus({ preventScroll: true });
+  }
+  /* ───────── stampa: nasconde tutto tranne il report ───────── */
+  var hiddenForPrint = [];
+  function preparePrint() {
+    if (hiddenForPrint.length || reportBox.hasAttribute('hidden')) return;
+    var node = reportBox;
+    while (node && node !== document.body && node.parentElement) {
+      var p = node.parentElement;
+      for (var i = 0; i < p.children.length; i++) {
+        var sib = p.children[i];
+        if (sib !== node && !sib.classList.contains('ac-print-hide')) { sib.classList.add('ac-print-hide'); hiddenForPrint.push(sib); }
+      }
+      node = p;
+    }
+  }
+  function cleanupPrint() {
+    hiddenForPrint.forEach(function (n) { n.classList.remove('ac-print-hide'); });
+    hiddenForPrint = [];
+  }
+  window.addEventListener('beforeprint', preparePrint);
+  window.addEventListener('afterprint', cleanupPrint);
+})();
+</script>

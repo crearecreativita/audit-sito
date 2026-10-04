@@ -1,0 +1,17 @@
+name = "audit-sito"
+main = "src/index.js"
+compatibility_date = "2026-06-01"
+workers_dev = true
+preview_urls = false
+
+# Variabili NON segrete (modificabili qui). I secret si impostano con `wrangler secret put`.
+[vars]
+ALLOWED_ORIGINS = "https://crearecreativita.it,https://www.crearecreativita.it,https://audit.crearecreativita.it"
+RATE_LIMIT_PER_DAY = "3"
+GLOBAL_DAILY_LIMIT = "200"
+
+# KV per i contatori anti-abuso. Crealo con: npx wrangler kv namespace create AUDIT_KV
+# e incolla qui l'id che ti restituisce.
+[[kv_namespaces]]
+binding = "AUDIT_KV"
+id = "d66a7e0adfa14f98952d1e169f1a11c9"
