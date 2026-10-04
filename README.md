@@ -130,9 +130,9 @@ Il form ha già un campo trappola (honeypot) e un tempo minimo di compilazione; 
 
 La pagina su GitHub Pages ha `<link rel="canonical">` che punta a `https://www.crearecreativita.it/analisi-sito-web-gratis/`, quindi Google considera quella principale. Se la tua pagina WordPress ha uno slug diverso, cambia il canonical in `frontend/index.template.html` (e `PAGE_URL` in `scripts/build-content.mjs`).
 
-### Font (facoltativo)
+### Font
 
-La pagina su GitHub Pages usa Be Vietnam Pro solo se è installato sul dispositivo; altrimenti usa i caratteri di sistema. Per self-hostarlo (senza chiamare Google Fonts, che ha implicazioni privacy): scarica i `.woff2` da Google Fonts, mettili in `frontend/fonts/` e aggiungi in `index.template.html` le regole `@font-face`.
+La pagina su GitHub Pages carica Be Vietnam Pro (pesi 400 e 700, sottoinsieme latino) da `frontend/fonts/`: sono gli stessi file che il tuo sito serve con il plugin OMGF, quindi nessuna chiamata a Google. Nel blocco WordPress il font è quello del tema.
 
 ## 4. Incollare lo strumento in WordPress
 
