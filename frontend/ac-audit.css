@@ -174,6 +174,13 @@
 .ac-audit .ac-shot img { display: block; width: 100%; height: auto; border-radius: 16px; background: #fff; }
 .ac-audit .ac-shot figcaption { margin-top: 8px; font-size: 12px; text-align: center; color: #cfcdd3; }
 
+.ac-audit .ac-notice { padding: 20px 22px; border: 1.5px solid var(--ac-brand); border-radius: var(--ac-radius); background: var(--ac-soft); }
+.ac-audit .ac-notice h3 { font-size: 18px; line-height: 1.3; margin-bottom: 8px; }
+.ac-audit .ac-notice p { font-size: 15.5px; }
+.ac-audit .ac-notice-row { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin-top: 14px; }
+.ac-audit .ac-notice-ok { font-size: 14px; color: var(--ac-muted); }
+.ac-audit .ac-notice-link { margin-top: 10px; font-size: 12.5px; color: var(--ac-muted); overflow-wrap: anywhere; user-select: all; -webkit-user-select: all; }
+
 /* Problemi */
 .ac-audit .ac-issues { display: grid; gap: 14px; }
 .ac-audit .ac-issue { padding: 20px 22px; border: 1px solid var(--ac-line); border-left-width: 5px; border-radius: var(--ac-radius); background: var(--ac-bg); break-inside: avoid; page-break-inside: avoid; }

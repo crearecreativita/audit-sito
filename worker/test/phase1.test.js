@@ -318,3 +318,22 @@ test('503 persistente: messaggio chiaro dopo due tentativi', async () => {
   await assert.rejects(collectSite('https://giu.it/', { fetchImpl: f, retryDelayMs: 1 }), (e) => e.code === 'server_error' && /momentaneamente/.test(e.message));
   assert.equal(n, 2);
 });
+
+test('Report condivisibile: id casuale, 6 ore, solo da origini ammesse', async () => {
+  const deps = { fetchImpl: fakeFetch([]) };
+  const env = makeEnv();
+  const s = await post(env, '/api/start', good, deps);
+  const steps = {};
+  for (const step of ['psiMobile', 'site']) { const r = await post(env, '/api/step', { token: s.body.token, step }, deps); steps[step] = { payload: r.body.payload, sig: r.body.sig }; }
+  const fin = await post(env, '/api/finish', { token: s.body.token, steps }, deps);
+  assert.match(fin.body.shareId, /^[a-f0-9]{32}$/);
+
+  const get = (q, origin = 'https://www.crearecreativita.it') => worker.fetch(new Request('https://api.test/api/report?id=' + q, { headers: { origin } }), env, {}, deps);
+  const ok = await get(fin.body.shareId);
+  assert.equal(ok.status, 200);
+  assert.equal((await ok.json()).report.score, fin.body.report.score);
+  assert.equal((await get('0'.repeat(32))).status, 404);          // inesistente
+  assert.equal((await get('../../x')).status, 404);               // formato non valido
+  assert.equal((await get(fin.body.shareId, 'https://evil.example')).status, 403);
+  assert.equal((await get(fin.body.shareId, '')).status, 403);
+});

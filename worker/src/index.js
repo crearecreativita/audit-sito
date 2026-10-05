@@ -15,6 +15,8 @@ const CONSENT_VERSION = 'informativa-2026-10';
 const MAX_BODY = 400_000;
 const MIN_FORM_MS = 2000;
 const STEPS = ['psiMobile', 'psiDesktop', 'site', 'ssl', 'style'];
+const REPORT_TTL = 6 * 3600;
+const randomHex = (bytes) => [...crypto.getRandomValues(new Uint8Array(bytes))].map((b) => b.toString(16).padStart(2, '0')).join('');
 
 function json(data, status, origin, env) {
   return new Response(JSON.stringify(data), {
@@ -165,7 +167,23 @@ async function handleFinish(request, env, ctx, deps) {
   lead.label = report.label?.text || '';
   lead.outcome = report.partial.desktopMissing ? 'ok (senza desktop)' : 'ok';
   await persistLead(env, ctx, tok.j, lead, deps);
-  return { ok: true, report };
+
+  // Copia del report per 6 ore, raggiungibile solo con un codice casuale: serve a riaprirlo nel browser vero
+  // quando l'analisi è stata fatta in un browser integrato (Instagram, Facebook...) che non permette di stampare.
+  let shareId = null;
+  if (env.AUDIT_KV) {
+    shareId = randomHex(16);
+    try { await env.AUDIT_KV.put(`rep:${shareId}`, JSON.stringify(report), { expirationTtl: REPORT_TTL }); } catch { shareId = null; }
+  }
+  return { ok: true, report, shareId };
+}
+
+async function handleReport(request, env) {
+  const id = new URL(request.url).searchParams.get('id') || '';
+  if (!/^[a-f0-9]{32}$/.test(id)) throw new AuditError('report_not_found', 'Report non trovato.', 404);
+  const raw = env.AUDIT_KV ? await env.AUDIT_KV.get(`rep:${id}`) : null;
+  if (!raw) throw new AuditError('report_expired', 'Questo report non è più disponibile (resta salvato per 6 ore). Rifai l\'analisi.', 404);
+  return { ok: true, report: JSON.parse(raw) };
 }
 
 async function persistLead(env, ctx, jobId, lead, deps) {
@@ -185,6 +203,16 @@ export default {
       return new Response(null, { status: ok ? 204 : 403, headers: { ...corsHeaders(origin, env), 'x-robots-tag': 'noindex' } });
     }
     if (url.pathname === '/api/health' && request.method === 'GET') return json({ ok: true }, 200, origin, env);
+
+    if (url.pathname === '/api/report' && request.method === 'GET') {
+      if (!allowedOrigins(env).includes(origin)) {
+        return json({ ok: false, error: { code: 'forbidden_origin', message: 'Richiesta non autorizzata da questo sito.' } }, 403, origin, env);
+      }
+      try { return json(await handleReport(request, env), 200, origin, env); } catch (e) {
+        if (e instanceof AuditError) return json({ ok: false, error: { code: e.code, message: e.message } }, e.status, origin, env);
+        return json({ ok: false, error: { code: 'internal', message: 'Errore imprevisto.' } }, 500, origin, env);
+      }
+    }
 
     const routes = { '/api/start': handleStart, '/api/step': handleStep, '/api/finish': handleFinish };
     const handler = routes[url.pathname];

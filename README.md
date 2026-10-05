@@ -145,6 +145,10 @@ La pagina su GitHub Pages carica Be Vietnam Pro (pesi 400 e 700, sottoinsieme la
 
 Il testo attorno al tool è HTML normale: Google lo legge anche senza JavaScript.
 
+## Browser integrati (Instagram, Facebook, TikTok…)
+
+In questi browser `window.print()` e il download dei file non funzionano. Il tool li riconosce dall'user agent: il pulsante "Stampa o salva in PDF" mostra un avviso che spiega come aprire la pagina nel browser vero. Per non far rifare l'analisi, a fine analisi il Worker salva il report nel KV per 6 ore (chiave `rep:<codice casuale>`, solo il report: niente email) e l'indirizzo della pagina diventa `…#r=<codice>`. Aprendo quel link (dal menu "Apri nel browser" o con "Copia il link del report") il report si ricarica da `GET /api/report?id=…`. Il codice sta dopo il `#`, quindi non esiste come pagina indicizzabile.
+
 ## Come ragiona il punteggio
 
 | Area | Peso | Da cosa nasce |

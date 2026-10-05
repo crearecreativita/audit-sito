@@ -26,6 +26,12 @@
   var stepsList = root.querySelector('.ac-steps');
   var failBox = root.querySelector('.ac-fail');
   var reportBox = root.querySelector('.ac-report');
+  // Browser integrati (Instagram, Facebook, TikTok...): lì stampare e scaricare file non funziona
+  var UA = navigator.userAgent || '';
+  var IN_APP = /Instagram|FBAN|FBAV|FB_IAB|FBIOS|Messenger|Line\/|MicroMessenger|TikTok|musical_ly|Snapchat|LinkedInApp|Pinterest|Twitter|; wv\)/i.test(UA) ||
+    (/iPhone|iPad|iPod/.test(UA) && !/Safari\//.test(UA));
+  var shareUrl = '';
+  var noticeBox = null;
   var loadedAt = (window.performance && performance.now) ? performance.now() : 0;
 
   /* ───────── utilità ───────── */
@@ -212,6 +218,7 @@
       tracker.complete();
       setTimeout(function () {
         show(progress, false);
+        rememberShare(fin.shareId);
         renderReport(fin.report, screenshot);
         running = false;
       }, 400);
@@ -224,6 +231,8 @@
   }
 
   function resetForm() {
+    shareUrl = '';
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignora */ }
     show(failBox, false); show(reportBox, false); show(progress, false); show(form, true);
     submitBtn.disabled = false; running = false; show(errorBox, false);
     if (window.turnstile && turnstileId !== null) { window.turnstile.reset(turnstileId); turnstileToken = ''; }
@@ -318,6 +327,9 @@
       el('div', null, el('h2', { text: 'Analisi di ' + (rep.host || rep.url) }), el('p', { 'class': 'ac-r-date', text: 'Eseguita il ' + date + ' · Analisi gratuita di Creare Creatività' })),
       actionsRow()));
 
+    noticeBox = el('div', { 'class': 'ac-notice ac-no-print', role: 'status', hidden: '' });
+    kids.push(noticeBox);
+
     var t = tone(rep.score);
     var counts = [];
     if (rep.counts.alta) counts.push(rep.counts.alta + ' ad alta priorità');
@@ -379,6 +391,56 @@
     reportBox.focus({ preventScroll: true });
   }
 
+  /* ───────── browser integrati: il report si riapre nel browser vero ───────── */
+  function rememberShare(id) {
+    if (!id || !/^[a-f0-9]{32}$/.test(id)) return;
+    shareUrl = location.origin + location.pathname + location.search + '#r=' + id;
+    // se l'utente sceglie "Apri nel browser" dal menu dell'app, l'indirizzo corrente contiene già il codice
+    try { history.replaceState(null, '', '#r=' + id); } catch (e) { /* ignora */ }
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
+    return new Promise(function (resolve, reject) {
+      var ta = el('textarea', { 'aria-hidden': 'true' }); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;left:-9999px';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy') ? resolve() : reject(); } catch (e) { reject(e); } finally { document.body.removeChild(ta); }
+    });
+  }
+
+  function showInAppNotice() {
+    if (!noticeBox) return;
+    noticeBox.textContent = '';
+    noticeBox.appendChild(el('h3', { text: 'Per salvare il PDF apri la pagina nel browser' }));
+    noticeBox.appendChild(el('p', { text: 'Stai guardando questa pagina dentro un’app (Instagram, Facebook, TikTok…). Lì non si può stampare né scaricare. Tocca i tre puntini (o l’icona della bussola) e scegli “Apri nel browser”: troverai lo stesso report, senza rifare l’analisi. Resta disponibile per 6 ore.' }));
+    if (shareUrl) {
+      var status = el('span', { 'class': 'ac-notice-ok', role: 'status' });
+      var copy = el('button', { 'class': 'ac-btn ac-btn--small', type: 'button', text: 'Copia il link del report' });
+      copy.addEventListener('click', function () {
+        copyText(shareUrl).then(function () { status.textContent = 'Link copiato: incollalo in Safari o Chrome.'; },
+          function () { status.textContent = 'Non riesco a copiarlo. Tieni premuto sul link qui sotto per copiarlo.'; });
+      });
+      noticeBox.appendChild(el('p', { 'class': 'ac-notice-row' }, copy, status));
+      noticeBox.appendChild(el('p', { 'class': 'ac-notice-link', text: shareUrl }));
+    }
+    show(noticeBox, true);
+    noticeBox.scrollIntoView && noticeBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // Link con #r=codice: riapre un report già fatto (per 6 ore)
+  (function openSharedReport() {
+    var m = /^#r=([a-f0-9]{32})$/.exec(location.hash || '');
+    if (!m || !API) return;
+    show(form, false); show(progress, false);
+    fetch(API + '/api/report?id=' + m[1]).then(function (r) { return r.json(); }).then(function (d) {
+      if (!d || d.ok === false) throw new Error((d && d.error && d.error.message) || 'Report non disponibile.');
+      shareUrl = location.origin + location.pathname + location.search + location.hash;
+      renderReport(d.report, null);
+    }).catch(function (e) {
+      showFail((e && e.message) || 'Report non disponibile.', '');
+    });
+  })();
+
   /* ───────── stampa: nasconde tutto tranne il report ───────── */
   var hiddenForPrint = [];
   function preparePrint() {
@@ -399,6 +461,7 @@
   }
   // Il ripristino avviene solo a stampa finita (afterprint): alcuni browser compongono l'anteprima DOPO il ritorno di window.print()
   function startPrint() {
+    if (IN_APP) { showInAppNotice(); return; }
     preparePrint();
     setTimeout(function () {
       try { window.print(); } catch (e) { cleanupPrint(); }
