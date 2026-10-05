@@ -10,13 +10,13 @@ const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, 
 
 const SEO = {
   title: 'Analisi sito web gratis a Padova: report con voto',
-  titleAlt: 'Analisi sito web gratis: voto e report in 30 secondi',
+  titleAlt: 'Analisi sito web gratis: voto e report in un minuto',
   meta: "Analisi sito web gratis: scrivi l'indirizzo e ricevi un report con voto su velocità, mobile, SEO e sicurezza. Da un web designer di Padova.",
 };
 
 const part1 = `<h1>Analisi sito web gratis: scopri cosa frena il tuo sito</h1>
 <p>Hai un sito e non sai se funziona davvero? Spesso te ne accorgi solo quando il telefono smette di squillare.</p>
-<p>Scrivi qui sotto l’indirizzo del tuo sito e la tua email. In circa 30 secondi ricevi un report con un <strong>voto da 0 a 100</strong>, scritto in italiano normale, senza sigle. Ogni problema ha tre righe: cosa significa, perché conta per la tua attività, come si risolve.</p>
+<p>Scrivi qui sotto l’indirizzo del tuo sito e la tua email. In circa un minuto ricevi un report con un <strong>voto da 0 a 100</strong>, scritto in italiano normale, senza sigle. Ogni problema ha tre righe: cosa significa, perché conta per la tua attività, come si risolve.</p>
 <p>Sono Alessandro, web designer a Padova. Ho costruito questo strumento sulle domande che mi fanno i clienti quando mi mostrano il loro sito.</p>`;
 
 const part2 = `<h2>Cosa controlla l’analisi</h2>

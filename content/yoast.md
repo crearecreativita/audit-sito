@@ -12,9 +12,9 @@
 | **URL finale** | https://www.crearecreativita.it/analisi-sito-web-gratis/ |
 | **Canonical della versione su GitHub Pages** | punta a https://www.crearecreativita.it/analisi-sito-web-gratis/ (già impostato in frontend/index.html) |
 
-## Alternativa senza località (52/60)
+## Alternativa senza località (51/60)
 
-Analisi sito web gratis: voto e report in 30 secondi
+Analisi sito web gratis: voto e report in un minuto
 
 Usala se preferisci un titolo nazionale. La variante locale ("a Padova") resta comunque nel testo, nella meta description e nel link alla pagina sui siti web a Padova.
 
