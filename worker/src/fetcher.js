@@ -106,5 +106,6 @@ export function statusToError(res) {
     return new AuditError('blocked', 'Il sito blocca gli strumenti di analisi automatica (di solito è una protezione anti-bot). Non è un problema del tuo sito: per analizzarlo bisognerebbe aprire un\'eccezione.');
   }
   if (s === 404) return new AuditError('not_found', 'La home page di questo indirizzo risponde "pagina non trovata". Controlla di aver scritto l\'indirizzo giusto.');
-  return new AuditError('server_error', 'Il sito risponde con un errore (codice ' + s + '). Riprova più tardi o controlla che sia online.');
+  if ([502, 503, 504].includes(s)) return new AuditError('server_error', 'Il sito è momentaneamente non disponibile (codice ' + s + '), anche dopo un secondo tentativo. Riprova tra qualche minuto.');
+  return new AuditError('server_error', 'Il sito risponde con un errore (codice ' + s + '). Controlla che sia online e riprova.');
 }

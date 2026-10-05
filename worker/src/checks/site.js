@@ -34,8 +34,16 @@ export function parseRobots(text) {
 
 const looksLikeSitemap = (t) => /<urlset\b|<sitemapindex\b/i.test(t);
 
-export async function collectSite(url, { fetchImpl = fetch } = {}) {
-  const home = await safeFetch(url, { fetchImpl, timeoutMs: 15000, maxBytes: 1_500_000 });
+const TEMPORARY = new Set([502, 503, 504]);
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+export async function collectSite(url, { fetchImpl = fetch, retryDelayMs = 2500 } = {}) {
+  // Un 502/503/504 spesso è un attimo di sovraccarico (cache appena svuotata, picco di visite): riproviamo una volta
+  let home = await safeFetch(url, { fetchImpl, timeoutMs: 15000, maxBytes: 1_500_000 });
+  if (TEMPORARY.has(home.status)) {
+    await wait(retryDelayMs);
+    home = await safeFetch(url, { fetchImpl, timeoutMs: 15000, maxBytes: 1_500_000 });
+  }
   const err = statusToError(home);
   if (err) throw err;
   if (!/html/i.test(home.headers.get('content-type') || 'text/html') || home.text.trim().length < 1) {

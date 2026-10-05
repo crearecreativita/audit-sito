@@ -297,3 +297,24 @@ test('Home non HTML (es. JSON) → errore chiaro', async () => {
   const f = async () => new Response('{"a":1}', { status: 200, headers: { 'content-type': 'application/json' } });
   await assert.rejects(collectSite('https://api.esempio.it/', { fetchImpl: f }), (e) => e.code === 'not_html');
 });
+
+test('503 passeggero: al secondo tentativo il sito risponde → analisi ok', async () => {
+  const { collectSite } = await import('../src/checks/site.js');
+  let n = 0;
+  const f = async (u) => {
+    u = String(u);
+    if (u === 'https://lento.it/') return ++n === 1 ? new Response('busy', { status: 503 }) : new Response(HOME_HTML, { status: 200, headers: { 'content-type': 'text/html' } });
+    return new Response('nope', { status: 404 });
+  };
+  const d = await collectSite('https://lento.it/', { fetchImpl: f, retryDelayMs: 1 });
+  assert.equal(n, 2);
+  assert.equal(d.seo.title, 'Idraulico Rossi Padova');
+});
+
+test('503 persistente: messaggio chiaro dopo due tentativi', async () => {
+  const { collectSite } = await import('../src/checks/site.js');
+  let n = 0;
+  const f = async () => { n++; return new Response('busy', { status: 503 }); };
+  await assert.rejects(collectSite('https://giu.it/', { fetchImpl: f, retryDelayMs: 1 }), (e) => e.code === 'server_error' && /momentaneamente/.test(e.message));
+  assert.equal(n, 2);
+});
