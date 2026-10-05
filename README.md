@@ -184,5 +184,6 @@ Ricordati di rigenerare con l'`apiUrl` vero (`node scripts/build.mjs`) prima di 
 - **Cookie banner**: si cerca nel codice della home (gestori noti, testi tipici). Un banner caricato in modo insolito può sfuggire; per questo il problema compare solo se ci sono anche strumenti di tracciamento.
 - **Colori e font**: letti dal CSS. Le palette predefinite di WordPress, Elementor e Bootstrap sono escluse; i CSS dei plugin vengono saltati quando è possibile, ma le cache che uniscono tutto in un file li rendono indistinguibili. Il report dice che è una stima.
 - **Siti dietro protezioni anti-bot**: il report spiega che il sito blocca l'analisi e il contatto viene salvato lo stesso, con l'esito nel foglio.
+- **Ultimo articolo e ultima modifica**: la data dell'ultimo articolo si legge dal feed RSS/Atom del sito (con l'API REST come ripiego su WordPress); `Last-Modified` è quello dichiarato dal server, che sui siti con cache indica spesso la data della cache. Per questo l'ultima modifica è solo un indizio, con gravità bassa, e se il server non la dichiara non compare nulla.
 - **Solo la home page**.
 - **Accessibilità e screenshot** arrivano da Lighthouse (PageSpeed): se Google cambia i nomi dei controlli, il Worker salta quello che non trova invece di fallire.

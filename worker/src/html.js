@@ -208,3 +208,15 @@ export function styleSources(html, baseUrl) {
   }
   return { inline, links: [...new Set(links)] };
 }
+
+/** Indirizzi dei feed RSS/Atom dichiarati nella pagina (quelli dei commenti per ultimi). */
+export function feedLinks(html, baseUrl) {
+  const out = [];
+  for (const a of getTags(html.replace(/<!--[\s\S]*?-->/g, ''), 'link')) {
+    if (!/\balternate\b/i.test(a.rel || '') || !/(rss|atom)\+xml/i.test(a.type || '') || !a.href) continue;
+    try { out.push(new URL(a.href, baseUrl).href); } catch { /* href malformato */ }
+  }
+  const main = out.filter((u) => !/comment/i.test(u));
+  const comments = out.filter((u) => /comment/i.test(u));
+  return [...new Set([...main, ...comments])];
+}

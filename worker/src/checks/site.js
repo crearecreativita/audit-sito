@@ -34,6 +34,13 @@ export function parseRobots(text) {
 
 const looksLikeSitemap = (t) => /<urlset\b|<sitemapindex\b/i.test(t);
 
+/** Data dell'intestazione Last-Modified in formato ISO, o null se assente/non valida/nel futuro. */
+export function parseHttpDate(value, now = Date.now()) {
+  const t = value ? Date.parse(value) : NaN;
+  if (!Number.isFinite(t) || t > now + 86400000 || t < Date.UTC(1995, 0, 1)) return null;
+  return new Date(t).toISOString();
+}
+
 const TEMPORARY = new Set([502, 503, 504]);
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -96,6 +103,7 @@ export async function collectSite(url, { fetchImpl = fetch, retryDelayMs = 2500 
     https: isHttps,
     httpToHttps,
     ttfbMs: home.ms,
+    lastModified: parseHttpDate(home.headers.get('last-modified')),
     truncated: home.truncated,
     seo: {
       ...analysis,

@@ -152,3 +152,65 @@ test('CSS: colori predefiniti di plugin/WordPress non gonfiano la palette', () =
   const { colors } = finalizeCss(analyzeCss(css));
   assert.deepEqual([...colors.keys()], ['#f92273']);
 });
+
+import { parseFeedLatest } from '../src/extras.js';
+import { parseHttpDate } from '../src/checks/site.js';
+import { feedLinks } from '../src/html.js';
+
+test('Feed: data dell’articolo più recente (RSS e Atom), lastBuildDate ignorata', () => {
+  const rss = `<rss><channel><lastBuildDate>Mon, 05 Oct 2026 10:00:00 +0000</lastBuildDate>
+    <item><title>a</title><pubDate>Tue, 12 Mar 2024 09:00:00 +0000</pubDate></item>
+    <item><title>b</title><pubDate>Mon, 01 Jan 2024 09:00:00 +0000</pubDate></item></channel></rss>`;
+  assert.equal(parseFeedLatest(rss, Date.parse('2026-10-05')), '2024-03-12T09:00:00.000Z');
+  const atom = `<feed><updated>2026-10-01T00:00:00Z</updated><entry><published>2022-05-02T08:00:00Z</published></entry></feed>`;
+  assert.equal(parseFeedLatest(atom), '2022-05-02T08:00:00.000Z');
+  assert.equal(parseFeedLatest('<rss><channel><title>vuoto</title></channel></rss>'), null);
+  assert.equal(parseFeedLatest('<html>non è un feed</html>'), null);
+  assert.equal(parseFeedLatest('<rss><channel><item><pubDate>Mon, 01 Jan 2040 09:00:00 +0000</pubDate></item></channel></rss>', Date.parse('2026-10-05')), null); // data nel futuro
+});
+
+test('Last-Modified e link ai feed', () => {
+  const now = Date.parse('2026-10-05');
+  assert.equal(parseHttpDate('Wed, 21 Oct 2020 07:28:00 GMT', now), '2020-10-21T07:28:00.000Z');
+  assert.equal(parseHttpDate(null, now), null);
+  assert.equal(parseHttpDate('boh', now), null);
+  assert.equal(parseHttpDate('Wed, 21 Oct 2040 07:28:00 GMT', now), null);
+  const links = feedLinks('<link rel="alternate" type="application/rss+xml" href="/comments/feed/"><link rel="alternate" type="application/rss+xml" href="/feed/"><link rel="alternate" type="application/json" href="/x.json">', 'https://a.it/');
+  assert.deepEqual(links, ['https://a.it/feed/', 'https://a.it/comments/feed/']);
+});
+
+test('Passo style: ultimo articolo dal feed, ultima modifica dal server', async () => {
+  const f = async (input) => {
+    const url = String(input);
+    const R = (b, s = 200, h = {}) => new Response(b, { status: s, headers: h });
+    if (url === 'https://blog.it/') return R('<html><head><link rel="alternate" type="application/rss+xml" href="/feed/"></head><body><footer>© 2026</footer></body></html>', 200, { 'content-type': 'text/html' });
+    if (url === 'https://blog.it/feed/') return R('<rss><channel><item><pubDate>Fri, 10 Mar 2023 09:00:00 +0000</pubDate></item></channel></rss>');
+    return R('nope', 404);
+  };
+  const x = await collectExtras({ finalUrl: 'https://blog.it/', seo: { hasIconLink: true }, lastModified: '2022-01-10T00:00:00.000Z' }, { fetchImpl: f });
+  assert.equal(x.lastPost.date, '2023-03-10T09:00:00.000Z');
+  assert.equal(x.lastPost.source, 'feed');
+  assert.equal(x.lastModified, '2022-01-10T00:00:00.000Z');
+});
+
+test('Report: ultimo articolo e ultima modifica (soglie 12 e 24 mesi)', () => {
+  const now = Date.parse('2026-10-05T10:00:00Z');
+  const base = { fonts: [], colors: { distinct: 0, families: 0, top: [] }, cssFiles: 0, favicon: { ok: true }, year: 2026, wp: { detected: false } };
+  const run = (x) => buildExtras({ ...base, ...x }, {}, now)[1];
+  const stale = run({ lastPost: { date: '2023-03-10T09:00:00.000Z' }, lastModified: '2022-01-10T00:00:00.000Z' });
+  const post = stale.issues.find((i) => i.id === 'last-post');
+  assert.equal(post.severity, 'media');
+  assert.match(post.title, /marzo 2023/);
+  assert.match(post.meaning, /3 anni/);
+  assert.equal(stale.issues.find((i) => i.id === 'last-modified').severity, 'bassa');
+  assert.ok(stale.section.rows.some((r) => r.label === 'Ultimo articolo pubblicato' && r.status === 'bad'));
+
+  const mid = run({ lastPost: { date: '2025-06-01T00:00:00.000Z' } });
+  assert.equal(mid.issues.find((i) => i.id === 'last-post').severity, 'bassa');
+  const fresh = run({ lastPost: { date: '2026-08-01T00:00:00.000Z' }, lastModified: '2026-09-01T00:00:00.000Z' });
+  assert.equal(fresh.issues.length, 0);
+  assert.ok(fresh.passed.includes('Blog aggiornato di recente'));
+  // nessun dato: nessuna riga, nessun problema
+  const none = run({ lastPost: { date: null }, lastModified: null });
+  assert.ok(!none.section || !none.section.rows.some((r) => /articolo|modifica/.test(r.label)));
+});

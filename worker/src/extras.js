@@ -1,12 +1,25 @@
 // Fase 2: identità visiva (font, colori, favicon) e segnali di abbandono (anno nel footer, WordPress, tema).
 import { safeFetch } from './fetcher.js';
 import { parseTargetUrl } from './validate.js';
-import { copyrightYear, detectWordPress, styleSources } from './html.js';
+import { copyrightYear, detectWordPress, styleSources, feedLinks } from './html.js';
 import { analyzeCss, finalizeCss, colorFamilies, googleFontFamilies } from './css.js';
 
 const MAX_CSS_FILES = 6;
 const MAX_CSS_BYTES = 300_000;
 const MAX_INLINE_BYTES = 600_000;
+
+/** Data dell'articolo più recente in un feed RSS o Atom (ISO), o null. Ignora lastBuildDate: cambia anche con un commento. */
+export function parseFeedLatest(xml, now = Date.now()) {
+  const text = String(xml || '');
+  const blocks = [...text.matchAll(/<item\b[\s\S]*?<\/item>|<entry\b[\s\S]*?<\/entry>/gi)].slice(0, 8).map((m) => m[0]);
+  let best = null;
+  for (const b of blocks) {
+    const m = /<(?:pubDate|dc:date|published|updated)\b[^>]*>\s*([^<]+?)\s*<\/(?:pubDate|dc:date|published|updated)>/i.exec(b);
+    const t = m ? Date.parse(m[1]) : NaN;
+    if (Number.isFinite(t) && t <= now + 86400000 && t > Date.UTC(1995, 0, 1) && (best === null || t > best)) best = t;
+  }
+  return best === null ? null : new Date(best).toISOString();
+}
 
 const parseVer = (v) => {
   const p = String(v || '').split('.').map(Number);
@@ -61,6 +74,27 @@ export async function collectExtras(site, { fetchImpl = fetch } = {}) {
   out.fonts = [...fonts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([name, n]) => ({ name, n: Math.round(n) }));
   const fam = colorFamilies(colors);
   out.colors = { distinct: [...colors.keys()].length, families: fam.families, top: fam.top };
+
+  // Data dell'ultimo articolo: dal feed del sito, poi (solo WordPress) dall'API REST
+  out.lastModified = site.lastModified || null;
+  out.lastPost = { date: null, source: null };
+  const origin = new URL(home.finalUrl).origin;
+  const feeds = [];
+  for (const u of [...feedLinks(html, home.finalUrl), origin + '/feed/', origin + '/feed', origin + '/rss.xml', origin + '/atom.xml']) {
+    try { const v = parseTargetUrl(u).url; if (!feeds.includes(v)) feeds.push(v); } catch { /* non ammesso */ }
+  }
+  for (const u of feeds.slice(0, 3)) {
+    const r = await safeFetch(u, { fetchImpl, timeoutMs: 6000, maxBytes: 300_000, headers: { accept: 'application/rss+xml, application/atom+xml, text/xml, */*;q=0.5' } }).catch(() => null);
+    const d = r && r.status === 200 ? parseFeedLatest(r.text) : null;
+    if (d) { out.lastPost = { date: d, source: 'feed' }; break; }
+  }
+  if (!out.lastPost.date && out.wp.detected) {
+    const r = await safeFetch(origin + '/wp-json/wp/v2/posts?per_page=1&_fields=date_gmt', { fetchImpl, timeoutMs: 6000, maxBytes: 20_000, headers: { accept: 'application/json' } }).catch(() => null);
+    try {
+      const t = r && r.status === 200 ? Date.parse(JSON.parse(r.text)[0].date_gmt + 'Z') : NaN;
+      if (Number.isFinite(t) && t < Date.now() + 86400000) out.lastPost = { date: new Date(t).toISOString(), source: 'rest' };
+    } catch { /* risposta non valida */ }
+  }
 
   // Favicon: se non c'è <link>, proviamo /favicon.ico
   if (!out.favicon.ok) {
@@ -171,6 +205,41 @@ export function buildExtras(x, site, now = Date.now()) {
       });
     } else care.passed.push('Anno nel footer aggiornato');
   } else crows.push(row('Anno nel footer', 'Non trovato', 'na'));
+
+  const monthsAgo = (iso) => (now - Date.parse(iso)) / (30.44 * 86400000);
+  const fmtMonth = (iso) => new Date(iso).toLocaleDateString('it-IT', { month: 'long', year: 'numeric', timeZone: 'Europe/Rome' });
+  const ago = (m) => (m >= 24 ? `circa ${Math.floor(m / 12)} anni` : `circa ${Math.round(m)} mesi`);
+
+  if (x.lastPost && x.lastPost.date) {
+    const m = monthsAgo(x.lastPost.date);
+    crows.push(row('Ultimo articolo pubblicato', fmtMonth(x.lastPost.date), m >= 24 ? 'bad' : m >= 12 ? 'warn' : 'ok', 'Letto dal feed del sito.'));
+    if (m >= 12) {
+      care.issues.push({
+        id: 'last-post', area: 'care', severity: m >= 24 ? 'media' : 'bassa',
+        title: `L’ultimo articolo del blog risale a ${fmtMonth(x.lastPost.date)}`,
+        meaning: `Il blog del sito non riceve nuovi articoli da ${ago(m)}.`,
+        why: 'Un blog fermo fa pensare che anche l’attività si sia fermata: chi arriva guarda la data dell’ultimo articolo prima ancora di leggerlo. E Google preferisce i siti che vede vivi.',
+        fix: 'Si pubblica ogni tanto, anche solo un articolo a trimestre. Se non c’è tempo per curarlo, meglio togliere il blog dal menu o nascondere le date.',
+        impact: Math.min(30, m / 2),
+      });
+    } else care.passed.push('Blog aggiornato di recente');
+  }
+
+  if (x.lastModified) {
+    const m = monthsAgo(x.lastModified);
+    crows.push(row('Ultima modifica dichiarata dal server', fmtMonth(x.lastModified), m >= 24 ? 'warn' : 'ok',
+      'Dato fornito dal server: sui siti WordPress con cache può essere la data di creazione della cache, quindi è solo un indizio.'));
+    if (m >= 24) {
+      care.issues.push({
+        id: 'last-modified', area: 'care', severity: 'bassa',
+        title: `Il server dichiara che la home non cambia da ${fmtMonth(x.lastModified)}`,
+        meaning: `Nell’intestazione della pagina il server indica come ultima modifica ${fmtMonth(x.lastModified)}, cioè ${ago(m)} fa.`,
+        why: 'È un indizio, non una prova: ma se è vero, significa che nessuno tocca la home da anni, e i visitatori se ne accorgono dai contenuti datati.',
+        fix: 'Si rivedono testi, foto, prezzi e contatti della home almeno una volta l’anno, anche senza cambiare la grafica.',
+        impact: 6,
+      });
+    }
+  }
 
   if (x.wp.detected) {
     if (x.wp.version) {
