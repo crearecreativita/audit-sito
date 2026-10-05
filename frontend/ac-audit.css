@@ -125,6 +125,8 @@
 .ac-audit .ac-r-head h2 { font-size: 26px; line-height: 1.2; overflow-wrap: anywhere; }
 .ac-audit .ac-r-date { margin-top: 4px; font-size: 14px; color: var(--ac-muted); }
 .ac-audit .ac-r-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.ac-audit .ac-r-foot { padding-top: 6px; border-top: 1px solid var(--ac-line); }
+.ac-audit .ac-r-foot .ac-r-actions { margin-top: 18px; }
 
 .ac-audit .ac-score { display: grid; grid-template-columns: 150px 1fr; gap: 28px; align-items: center; padding: 28px; border: 1px solid var(--ac-line); border-radius: var(--ac-radius); background: var(--ac-bg); }
 .ac-audit .ac-ring { --p: 0; --c: var(--ac-ink); position: relative; display: grid; place-items: center; width: 150px; height: 150px; border-radius: 50%;
@@ -227,7 +229,7 @@
 .ac-print-hide { display: none !important; }
 @media print {
   .ac-audit { --ac-ink: #000; --ac-muted: #444; --ac-line: #bbb; --ac-soft: #fff; --ac-bg: #fff; --ac-track: #ddd; --ac-pink: #c4124f; --ac-accent: #000; --ac-tick: #3d6b00; max-width: none; font-size: 11.5pt; color: #000; }
-  .ac-audit .ac-r-actions, .ac-audit .ac-cta-actions, .ac-audit .ac-no-print { display: none !important; }
+  .ac-audit .ac-r-actions, .ac-audit .ac-r-foot, .ac-audit .ac-cta-actions, .ac-audit .ac-no-print { display: none !important; }
   .ac-audit .ac-cta { --ac-cta-fg: #000; --ac-cta-bg: #fff; color: #000; background: #fff; border: 1.5px solid #000; }
   .ac-audit .ac-cta h2, .ac-audit .ac-cta p { color: #000; }
   .ac-audit .ac-shot { background: #000; }

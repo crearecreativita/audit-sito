@@ -307,13 +307,16 @@
     var date = new Date(rep.generatedAt).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
     var kids = [];
 
-    var printBtn = el('button', { 'class': 'ac-btn ac-btn--ghost ac-btn--small', type: 'button', text: 'Stampa o salva in PDF' });
-    printBtn.addEventListener('click', function () { preparePrint(); window.print(); cleanupPrint(); });
-    var againBtn = el('button', { 'class': 'ac-btn ac-btn--ghost ac-btn--small', type: 'button', text: 'Analizza un altro sito' });
-    againBtn.addEventListener('click', resetForm);
+    function actionsRow() {
+      var printBtn = el('button', { 'class': 'ac-btn ac-btn--ghost ac-btn--small', type: 'button', text: 'Stampa o salva in PDF' });
+      printBtn.addEventListener('click', startPrint);
+      var againBtn = el('button', { 'class': 'ac-btn ac-btn--ghost ac-btn--small', type: 'button', text: 'Analizza un altro sito' });
+      againBtn.addEventListener('click', resetForm);
+      return el('div', { 'class': 'ac-r-actions ac-no-print' }, printBtn, againBtn);
+    }
     kids.push(el('div', { 'class': 'ac-r-head' },
       el('div', null, el('h2', { text: 'Analisi di ' + (rep.host || rep.url) }), el('p', { 'class': 'ac-r-date', text: 'Eseguita il ' + date + ' · Analisi gratuita di Creare Creatività' })),
-      el('div', { 'class': 'ac-r-actions' }, printBtn, againBtn)));
+      actionsRow()));
 
     var t = tone(rep.score);
     var counts = [];
@@ -368,6 +371,8 @@
 
     kids.push(el('p', { 'class': 'ac-note', text: 'Analisi automatica della home page, fatta con gli strumenti di Google (PageSpeed Insights) e con controlli propri. È un punto di partenza, non una perizia: alcuni dettagli vanno guardati a mano.' }));
 
+    kids.push(el('div', { 'class': 'ac-r-foot' }, actionsRow()));
+
     kids.forEach(function (k) { reportBox.appendChild(k); });
     show(reportBox, true);
     reportBox.scrollIntoView && reportBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -391,6 +396,15 @@
   function cleanupPrint() {
     hiddenForPrint.forEach(function (n) { n.classList.remove('ac-print-hide'); });
     hiddenForPrint = [];
+  }
+  // Il ripristino avviene solo a stampa finita (afterprint): alcuni browser compongono l'anteprima DOPO il ritorno di window.print()
+  function startPrint() {
+    preparePrint();
+    setTimeout(function () {
+      try { window.print(); } catch (e) { cleanupPrint(); }
+      // rete di sicurezza: se il browser non invia mai afterprint, dopo 2 minuti la pagina torna normale
+      setTimeout(cleanupPrint, 120000);
+    }, 80);
   }
   window.addEventListener('beforeprint', preparePrint);
   window.addEventListener('afterprint', cleanupPrint);

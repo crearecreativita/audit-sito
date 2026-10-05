@@ -119,6 +119,8 @@
 .ac-audit .ac-r-head h2 { font-size: 26px; line-height: 1.2; overflow-wrap: anywhere; }
 .ac-audit .ac-r-date { margin-top: 4px; font-size: 14px; color: var(--ac-muted); }
 .ac-audit .ac-r-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.ac-audit .ac-r-foot { padding-top: 6px; border-top: 1px solid var(--ac-line); }
+.ac-audit .ac-r-foot .ac-r-actions { margin-top: 18px; }
 .ac-audit .ac-score { display: grid; grid-template-columns: 150px 1fr; gap: 28px; align-items: center; padding: 28px; border: 1px solid var(--ac-line); border-radius: var(--ac-radius); background: var(--ac-bg); }
 .ac-audit .ac-ring { --p: 0; --c: var(--ac-ink); position: relative; display: grid; place-items: center; width: 150px; height: 150px; border-radius: 50%;
   background: conic-gradient(var(--c) calc(var(--p) * 1%), var(--ac-track) 0); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -213,7 +215,7 @@
 .ac-print-hide { display: none !important; }
 @media print {
   .ac-audit { --ac-ink: #000; --ac-muted: #444; --ac-line: #bbb; --ac-soft: #fff; --ac-bg: #fff; --ac-track: #ddd; --ac-pink: #c4124f; --ac-accent: #000; --ac-tick: #3d6b00; max-width: none; font-size: 11.5pt; color: #000; }
-  .ac-audit .ac-r-actions, .ac-audit .ac-cta-actions, .ac-audit .ac-no-print { display: none !important; }
+  .ac-audit .ac-r-actions, .ac-audit .ac-r-foot, .ac-audit .ac-cta-actions, .ac-audit .ac-no-print { display: none !important; }
   .ac-audit .ac-cta { --ac-cta-fg: #000; --ac-cta-bg: #fff; color: #000; background: #fff; border: 1.5px solid #000; }
   .ac-audit .ac-cta h2, .ac-audit .ac-cta p { color: #000; }
   .ac-audit .ac-shot { background: #000; }
@@ -544,13 +546,16 @@
     reportBox.textContent = '';
     var date = new Date(rep.generatedAt).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
     var kids = [];
-    var printBtn = el('button', { 'class': 'ac-btn ac-btn--ghost ac-btn--small', type: 'button', text: 'Stampa o salva in PDF' });
-    printBtn.addEventListener('click', function () { preparePrint(); window.print(); cleanupPrint(); });
-    var againBtn = el('button', { 'class': 'ac-btn ac-btn--ghost ac-btn--small', type: 'button', text: 'Analizza un altro sito' });
-    againBtn.addEventListener('click', resetForm);
+    function actionsRow() {
+      var printBtn = el('button', { 'class': 'ac-btn ac-btn--ghost ac-btn--small', type: 'button', text: 'Stampa o salva in PDF' });
+      printBtn.addEventListener('click', startPrint);
+      var againBtn = el('button', { 'class': 'ac-btn ac-btn--ghost ac-btn--small', type: 'button', text: 'Analizza un altro sito' });
+      againBtn.addEventListener('click', resetForm);
+      return el('div', { 'class': 'ac-r-actions ac-no-print' }, printBtn, againBtn);
+    }
     kids.push(el('div', { 'class': 'ac-r-head' },
       el('div', null, el('h2', { text: 'Analisi di ' + (rep.host || rep.url) }), el('p', { 'class': 'ac-r-date', text: 'Eseguita il ' + date + ' · Analisi gratuita di Creare Creatività' })),
-      el('div', { 'class': 'ac-r-actions' }, printBtn, againBtn)));
+      actionsRow()));
     var t = tone(rep.score);
     var counts = [];
     if (rep.counts.alta) counts.push(rep.counts.alta + ' ad alta priorità');
@@ -597,6 +602,7 @@
       ctaActions,
       el('p', { 'class': 'ac-cta-print', text: [MAIL, CONTACT].filter(Boolean).join(' · ') })));
     kids.push(el('p', { 'class': 'ac-note', text: 'Analisi automatica della home page, fatta con gli strumenti di Google (PageSpeed Insights) e con controlli propri. È un punto di partenza, non una perizia: alcuni dettagli vanno guardati a mano.' }));
+    kids.push(el('div', { 'class': 'ac-r-foot' }, actionsRow()));
     kids.forEach(function (k) { reportBox.appendChild(k); });
     show(reportBox, true);
     reportBox.scrollIntoView && reportBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -619,6 +625,15 @@
   function cleanupPrint() {
     hiddenForPrint.forEach(function (n) { n.classList.remove('ac-print-hide'); });
     hiddenForPrint = [];
+  }
+  // Il ripristino avviene solo a stampa finita (afterprint): alcuni browser compongono l'anteprima DOPO il ritorno di window.print()
+  function startPrint() {
+    preparePrint();
+    setTimeout(function () {
+      try { window.print(); } catch (e) { cleanupPrint(); }
+      // rete di sicurezza: se il browser non invia mai afterprint, dopo 2 minuti la pagina torna normale
+      setTimeout(cleanupPrint, 120000);
+    }, 80);
   }
   window.addEventListener('beforeprint', preparePrint);
   window.addEventListener('afterprint', cleanupPrint);
