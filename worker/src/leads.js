@@ -8,14 +8,18 @@ export async function saveLead(env, lead, { fetchImpl = fetch } = {}) {
       headers: { 'content-type': 'text/plain;charset=utf-8' }, // evita il preflight lato Apps Script
       body: JSON.stringify({ secret: env.LEAD_WEBHOOK_SECRET || '', ...lead }),
       redirect: 'follow',
-      signal: AbortSignal.timeout(12000),
+      signal: AbortSignal.timeout(25000),
     });
     const text = await res.text();
     let ok = res.ok;
-    try { ok = ok && JSON.parse(text).ok === true; } catch { ok = false; }
+    let parsed = null;
+    try { parsed = JSON.parse(text); ok = ok && parsed.ok === true; } catch { ok = false; }
     if (ok) return { saved: true };
+    // dettagli per capire perché (mai il secret): stato HTTP e inizio della risposta
+    console.error('LEAD_WEBHOOK_RIFIUTATO', res.status, res.headers.get('content-type'), String(text).replace(/\s+/g, ' ').slice(0, 300));
     return { saved: false, reason: 'webhook_rejected' };
-  } catch {
+  } catch (e) {
+    console.error('LEAD_WEBHOOK_NON_RAGGIUNGIBILE', e && e.name, e && e.message);
     return { saved: false, reason: 'webhook_unreachable' };
   }
 }

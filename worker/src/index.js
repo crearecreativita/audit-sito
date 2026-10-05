@@ -187,8 +187,14 @@ async function handleReport(request, env) {
 }
 
 async function persistLead(env, ctx, jobId, lead, deps) {
-  const res = await saveLead(env, lead, { fetchImpl: deps.fetchImpl });
-  if (!res.saved) await parkLead(env, jobId, lead);
+  // Lo script Google può metterci 10-20 secondi: il report non aspetta, il salvataggio prosegue in background.
+  // Se alla fine non riesce, il contatto resta 30 giorni nel KV.
+  const job = (async () => {
+    const res = await saveLead(env, lead, { fetchImpl: deps.fetchImpl });
+    if (!res.saved) await parkLead(env, jobId, lead);
+  })();
+  if (ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(job);
+  else await job;
 }
 
 /* ───────── router ───────── */

@@ -337,3 +337,29 @@ test('Report condivisibile: id casuale, 6 ore, solo da origini ammesse', async (
   assert.equal((await get(fin.body.shareId, 'https://evil.example')).status, 403);
   assert.equal((await get(fin.body.shareId, '')).status, 403);
 });
+
+test('Salvataggio lento dello script Google: il report arriva subito, il contatto si salva dopo', async () => {
+  let release;
+  const gate = new Promise((r) => (release = r));
+  const saved = [];
+  const base = fakeFetch([]);
+  const deps = { fetchImpl: async (u, i) => { if (String(u).includes('lead.test')) { await gate; saved.push(JSON.parse(i.body)); return new Response(JSON.stringify({ ok: true })); } return base(u, i); } };
+  const env = makeEnv({ LEAD_WEBHOOK_URL: 'https://lead.test/exec' });
+  const pending = [];
+  const ctx = { waitUntil: (p) => pending.push(p) };
+  const call = async (path, body) => {
+    const req = new Request('https://api.test' + path, { method: 'POST', headers: { origin: 'https://www.crearecreativita.it', 'content-type': 'application/json', 'cf-connecting-ip': '8.8.4.4' }, body: JSON.stringify(body) });
+    return (await worker.fetch(req, env, ctx, deps)).json();
+  };
+  const s = await call('/api/start', good);
+  const steps = {};
+  for (const step of ['psiMobile', 'site']) { const r = await call('/api/step', { token: s.token, step }); steps[step] = { payload: r.payload, sig: r.sig }; }
+  const fin = await call('/api/finish', { token: s.token, steps });
+  assert.equal(fin.ok, true);               // il report è già arrivato…
+  assert.equal(saved.length, 0);            // …mentre il contatto non è ancora stato scritto
+  release();
+  await Promise.all(pending);
+  assert.equal(saved.length, 1);
+  assert.equal(saved[0].email, 'mario@rossi.it');
+  assert.equal([...env.AUDIT_KV.m.keys()].filter((k) => k.startsWith('lead:')).length, 0);
+});
