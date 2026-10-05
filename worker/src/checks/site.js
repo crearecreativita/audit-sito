@@ -47,14 +47,15 @@ export function parsePhpVersion(value) {
   return m ? m[1] : null;
 }
 
-const TEMPORARY = new Set([502, 503, 504]);
+const TEMPORARY = new Set([429, 502, 503, 504]);
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export async function collectSite(url, { fetchImpl = fetch, retryDelayMs = 2500 } = {}) {
-  // Un 502/503/504 spesso è un attimo di sovraccarico (cache appena svuotata, picco di visite): riproviamo una volta
+  // Un 429/502/503/504 di solito è un attimo di sovraccarico o un limite di richieste: si riprova fino a 2 volte, con attese crescenti
   let home = await safeFetch(url, { fetchImpl, timeoutMs: 15000, maxBytes: 1_500_000 });
-  if (TEMPORARY.has(home.status)) {
-    await wait(retryDelayMs);
+  for (let attempt = 1; attempt <= 2 && TEMPORARY.has(home.status); attempt++) {
+    const ra = Number(home.headers.get('retry-after'));
+    await wait(Number.isFinite(ra) && ra > 0 ? Math.min(ra * 1000, 8000) : retryDelayMs * attempt);
     home = await safeFetch(url, { fetchImpl, timeoutMs: 15000, maxBytes: 1_500_000 });
   }
   const err = statusToError(home);

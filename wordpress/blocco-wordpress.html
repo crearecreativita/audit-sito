@@ -460,13 +460,18 @@
         if (e.code === 'token_invalid' || e.code === 'token_expired') abort = e;
       });
     }
+    // Prima si legge il sito (1-4 secondi), poi partono i test di Google: così il tuo server non riceve tutto insieme
+    // e non rifiuta richieste. Se il sito non si legge, i test di Google non partono nemmeno.
     var siteP = step('site').then(function () {
       var siteOk = false;
       try { siteOk = results.site && JSON.parse(results.site.payload).ok; } catch (e) { siteOk = false; }
-      if (siteOk && !abort) return step('style', { site: results.site });
-      tracker.end('style', false);
+      if (!siteOk || abort) {
+        ['psiMobile', 'psiDesktop', 'style'].forEach(function (id) { tracker.end(id, false); });
+        return;
+      }
+      return Promise.all([step('psiMobile'), step('psiDesktop'), step('style', { site: results.site })]);
     });
-    Promise.all([step('psiMobile'), step('psiDesktop'), siteP, step('ssl')]).then(function () {
+    Promise.all([siteP, step('ssl')]).then(function () {
       if (abort) throw abort;
       tracker.finishing = true;
       return api('/api/finish', { token: start.token, steps: results }, 30000);

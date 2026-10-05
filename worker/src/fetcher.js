@@ -101,8 +101,9 @@ export async function safeFetch(url, opts = {}) {
 export function statusToError(res) {
   const s = res.status;
   if (s < 400) return null;
+  if (s === 429) return new AuditError('site_rate_limited', 'Il sito ha rifiutato la richiesta perché ne arrivavano troppe ravvicinate. Aspetta un minuto e riprova.');
   const mitigated = res.headers.get('cf-mitigated');
-  if (mitigated || [401, 403, 406, 429].includes(s) || (s === 503 && /cloudflare|sucuri|incapsula|akamai/i.test(res.headers.get('server') || ''))) {
+  if (mitigated || [401, 403, 406].includes(s) || (s === 503 && /cloudflare|sucuri|incapsula|akamai/i.test(res.headers.get('server') || ''))) {
     return new AuditError('blocked', 'Il sito blocca gli strumenti di analisi automatica (di solito è una protezione anti-bot). Non è un problema del tuo sito: per analizzarlo bisognerebbe aprire un\'eccezione.');
   }
   if (s === 404) return new AuditError('not_found', 'La home page di questo indirizzo risponde "pagina non trovata". Controlla di aver scritto l\'indirizzo giusto.');

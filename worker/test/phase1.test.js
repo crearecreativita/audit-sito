@@ -311,12 +311,12 @@ test('503 passeggero: al secondo tentativo il sito risponde → analisi ok', asy
   assert.equal(d.seo.title, 'Idraulico Rossi Padova');
 });
 
-test('503 persistente: messaggio chiaro dopo due tentativi', async () => {
+test('503 persistente: messaggio chiaro dopo tre tentativi', async () => {
   const { collectSite } = await import('../src/checks/site.js');
   let n = 0;
   const f = async () => { n++; return new Response('busy', { status: 503 }); };
   await assert.rejects(collectSite('https://giu.it/', { fetchImpl: f, retryDelayMs: 1 }), (e) => e.code === 'server_error' && /momentaneamente/.test(e.message));
-  assert.equal(n, 2);
+  assert.equal(n, 3);   // il primo tentativo più due riprove
 });
 
 test('Report condivisibile: id casuale, 6 ore, solo da origini ammesse', async () => {
@@ -362,4 +362,23 @@ test('Salvataggio lento dello script Google: il report arriva subito, il contatt
   assert.equal(saved.length, 1);
   assert.equal(saved[0].email, 'mario@rossi.it');
   assert.equal([...env.AUDIT_KV.m.keys()].filter((k) => k.startsWith('lead:')).length, 0);
+});
+
+test('429 (troppe richieste): si riprova, poi messaggio dedicato (non "blocca l’analisi")', async () => {
+  const { collectSite } = await import('../src/checks/site.js');
+  let n = 0;
+  const ok = async (u) => (String(u) === 'https://limite.it/' && ++n < 3 ? new Response('slow down', { status: 429 }) : new Response(HOME_HTML, { status: 200, headers: { 'content-type': 'text/html' } }));
+  const d = await collectSite('https://limite.it/', { fetchImpl: ok, retryDelayMs: 1 });
+  assert.equal(n, 3);
+  assert.equal(d.seo.title, 'Idraulico Rossi Padova');
+
+  let m = 0;
+  const always = async () => { m++; return new Response('no', { status: 429 }); };
+  await assert.rejects(collectSite('https://sempre.it/', { fetchImpl: always, retryDelayMs: 1 }), (e) => e.code === 'site_rate_limited' && /troppe/.test(e.message));
+  assert.equal(m, 3);
+  // 403 resta "blocca": non si riprova
+  let k = 0;
+  const forbidden = async () => { k++; return new Response('no', { status: 403 }); };
+  await assert.rejects(collectSite('https://chiuso.it/', { fetchImpl: forbidden, retryDelayMs: 1 }), (e) => e.code === 'blocked');
+  assert.equal(k, 1);
 });
