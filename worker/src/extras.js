@@ -110,14 +110,6 @@ export async function collectExtras(site, { fetchImpl = fetch } = {}) {
       tasks.push(fetchImpl('https://api.wordpress.org/core/version-check/1.7/', { signal: AbortSignal.timeout(6000) })
         .then((r) => r.json()).then((j) => { out.wp.latest = j?.offers?.[0]?.current || null; }).catch(() => {}));
     }
-    for (const pl of (out.wp.plugins || []).slice(0, 8)) {
-      const f = ['sections', 'description', 'short_description', 'banners', 'icons', 'reviews', 'ratings', 'versions', 'tags', 'contributors', 'donate_link', 'compatibility', 'screenshots']
-        .map((k) => `&request%5Bfields%5D%5B${k}%5D=0`).join('');
-      const u = 'https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&request%5Bslug%5D=' + encodeURIComponent(pl.slug) + f;
-      tasks.push(fetchImpl(u, { signal: AbortSignal.timeout(6000) }).then((r) => r.json()).then((j) => {
-        if (j && j.version) { pl.latest = j.version; pl.lastUpdated = j.last_updated || null; pl.name = j.name || pl.slug; pl.org = true; }
-      }).catch(() => {}));
-    }
     for (const t of out.wp.themes.slice(0, 2)) {
       const u = 'https://api.wordpress.org/themes/info/1.2/?action=theme_information&request%5Bslug%5D=' + encodeURIComponent(t.slug) + '&request%5Bfields%5D%5Blast_updated%5D=1';
       tasks.push(fetchImpl(u, { signal: AbortSignal.timeout(6000) }).then((r) => r.json()).then((j) => {
@@ -139,16 +131,6 @@ export function phpSupportEnd(version) {
   if (PHP_SUPPORT_END[branch]) return PHP_SUPPORT_END[branch];
   if (Number(m[1]) < 8 || (m[1] === '8' && Number(m[2]) < 0)) return '2022-11-28'; // 7.x e precedenti: fuori supporto da tempo
   return null; // ramo più recente di quelli che conosco
-}
-
-/** 'major' | 'minor6' | 'minor3' | null: quanto la versione trovata è indietro rispetto all'ultima. */
-export function pluginBehind(found, latest) {
-  const a = parseVer(found), b = parseVer(latest);
-  if (!a || !b) return null;
-  if (b.major > a.major) return 'major';
-  if (b.major < a.major) return null;
-  const d = b.minor - a.minor;
-  return d >= 6 ? 'minor6' : d >= 3 ? 'minor3' : null;
 }
 
 /* ───────── dai fatti al report ───────── */
@@ -281,53 +263,16 @@ export function buildExtras(x, site, now = Date.now()) {
       const endTxt = fmtMonth(end);
       const expired = monthsLeft < 0;
       care.issues.push({
-        id: 'php-version', area: 'care', severity: expired ? (monthsLeft < -12 ? 'alta' : 'media') : 'bassa',
-        title: expired ? `PHP ${x.php} non riceve più aggiornamenti di sicurezza` : `PHP ${x.php} smette di essere aggiornato a ${endTxt}`,
+        id: 'php-version', area: 'care', severity: expired ? 'media' : 'bassa',
+        title: expired ? `PHP ${x.php} è fuori dal supporto ufficiale` : `PHP ${x.php} smette di essere aggiornato a ${endTxt}`,
         meaning: expired
-          ? `Il sito gira su PHP ${x.php}, la cui assistenza di sicurezza è finita a ${endTxt}. Il linguaggio su cui funziona WordPress non viene più corretto.`
+          ? `Il sito dichiara di girare su PHP ${x.php}, la cui assistenza di sicurezza ufficiale è finita a ${endTxt}.`
           : `Il sito gira su PHP ${x.php}, che riceverà correzioni di sicurezza solo fino a ${endTxt}.`,
-        why: 'Una versione di PHP fuori supporto lascia aperte falle che non verranno più chiuse, e prima o poi plugin e tema smettono di funzionare con essa.',
-        fix: 'Si cambia versione di PHP dal pannello dell’hosting (di solito è un menu). Prima si prova su una copia, perché plugin molto vecchi possono non reggere.',
+        why: 'Una versione di PHP fuori supporto lascia aperte falle che il progetto PHP non chiuderà più, e prima o poi plugin e tema smettono di funzionare con essa. Alcuni hosting offrono correzioni proprie anche per le versioni vecchie (supporto esteso): se è il tuo caso, il rischio è minore.',
+        fix: 'Chiedi al tuo hosting se la versione è ancora aggiornata da loro, oppure cambiala dal pannello (di solito è un menu). Prima si prova su una copia, perché plugin molto vecchi possono non reggere.',
         impact: expired ? 22 : 8,
       });
     } else if (monthsLeft !== null) care.passed.push('Versione di PHP supportata');
-  }
-
-  const pls = (x.wp && x.wp.plugins) || [];
-  if (x.wp && x.wp.detected && pls.length) {
-    const checked = pls.filter((p) => p.org && p.latest && p.version);
-    const late = checked.map((p) => ({ p, lvl: pluginBehind(p.version, p.latest) })).filter((e) => e.lvl);
-    const stale = pls.filter((p) => {
-      const d = p.lastUpdated ? Date.parse(String(p.lastUpdated).replace(/ (\d+:\d+)(am|pm) GMT/i, '')) : NaN;
-      return Number.isFinite(d) && (now - d) / (365.25 * 86400000) >= 2;
-    });
-    if (checked.length || stale.length) {
-      const names = (list) => list.slice(0, 4).map((e) => e.name || e.p.name || e.p.slug).join(', ') + (list.length > 4 ? ` e altri ${list.length - 4}` : '');
-      crows.push(row('Plugin controllati', `${checked.length} su ${x.wp.pluginCount || pls.length}`, late.length || stale.length ? 'warn' : 'ok',
-        'Versioni lette dai file che il sito carica e confrontate con il repository di WordPress: i plugin a pagamento non si possono verificare.'));
-      if (late.length) {
-        const heavy = late.some((e) => e.lvl !== 'minor3');
-        care.issues.push({
-          id: 'plugins-outdated', area: 'care', severity: heavy ? 'media' : 'bassa',
-          title: late.length === 1 ? `Il plugin ${late[0].p.name || late[0].p.slug} non è aggiornato` : `${late.length} plugin non sono aggiornati`,
-          meaning: `Versione trovata e ultima disponibile: ${late.slice(0, 4).map((e) => `${e.p.name || e.p.slug} (${e.p.version}, ultima ${e.p.latest})`).join('; ')}${late.length > 4 ? `; altri ${late.length - 4}` : ''}. La versione si legge dai file caricati dal sito, quindi può non coincidere al decimale con quella installata.`,
-          why: 'I plugin sono la porta d’ingresso più usata da chi attacca i siti WordPress, e quelli vecchi smettono di funzionare con le nuove versioni di WordPress e PHP.',
-          fix: 'Dopo un backup (meglio provando su una copia) si aggiornano uno alla volta, controllando che il sito funzioni, e si attivano gli aggiornamenti automatici per i meno critici.',
-          impact: 10 + late.length * 3,
-        });
-      }
-      if (stale.length) {
-        care.issues.push({
-          id: 'plugins-abandoned', area: 'care', severity: 'media',
-          title: stale.length === 1 ? `Il plugin ${stale[0].name || stale[0].slug} non riceve aggiornamenti da oltre 2 anni` : `${stale.length} plugin non ricevono aggiornamenti da oltre 2 anni`,
-          meaning: `Sul repository di WordPress risultano fermi da più di due anni: ${names(stale.map((p) => ({ p })))}.`,
-          why: 'Un plugin abbandonato dal suo autore non riceve più correzioni di sicurezza: se esce una falla, resta aperta.',
-          fix: 'Si sostituiscono con alternative mantenute, oppure si tolgono se non servono davvero.',
-          impact: 14 + stale.length * 2,
-        });
-      }
-      if (!late.length && !stale.length) care.passed.push('Plugin aggiornati');
-    }
   }
 
   if (x.wp.detected) {
