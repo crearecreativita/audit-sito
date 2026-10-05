@@ -41,6 +41,12 @@ export function parseHttpDate(value, now = Date.now()) {
   return new Date(t).toISOString();
 }
 
+/** Versione PHP dichiarata dal server (X-Powered-By: PHP/8.3.31), o null. */
+export function parsePhpVersion(value) {
+  const m = /PHP\/(\d{1,2}\.\d{1,2}(?:\.\d{1,3})?)/i.exec(value || '');
+  return m ? m[1] : null;
+}
+
 const TEMPORARY = new Set([502, 503, 504]);
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -104,6 +110,7 @@ export async function collectSite(url, { fetchImpl = fetch, retryDelayMs = 2500 
     httpToHttps,
     ttfbMs: home.ms,
     lastModified: parseHttpDate(home.headers.get('last-modified')),
+    php: parsePhpVersion(home.headers.get('x-powered-by')),
     truncated: home.truncated,
     seo: {
       ...analysis,

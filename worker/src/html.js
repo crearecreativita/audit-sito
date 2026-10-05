@@ -191,9 +191,24 @@ export function detectWordPress(html) {
     if (style && okVer(style[1])) themes.find((x) => x.slug === slug).version = style[1];
     if (themes.length >= 3) break;
   }
+  // plugin: slug e versione dai file che il sito carica (/wp-content/plugins/<slug>/…?ver=1.2.3)
+  const counts = new Map();
+  const slugs = new Set();
+  for (const m of html.matchAll(/\/wp-content\/plugins\/([\w-]+)\//gi)) slugs.add(m[1].toLowerCase());
+  for (const m of html.matchAll(/\/wp-content\/plugins\/([\w-]+)\/[^"'\s>]*?[?&](?:amp;|#038;)?ver=([\d.]+)/gi)) {
+    const slug = m[1].toLowerCase();
+    if (!okVer(m[2]) || m[2] === version) continue;
+    const e = counts.get(slug) || new Map();
+    e.set(m[2], (e.get(m[2]) || 0) + 1);
+    counts.set(slug, e);
+  }
+  const plugins = [...counts.entries()]
+    .map(([slug, vs]) => ({ slug, version: [...vs.entries()].sort((a, b) => b[1] - a[1])[0][0], n: [...vs.values()].reduce((a, b) => a + b, 0) }))
+    .sort((a, b) => b.n - a.n).slice(0, 8).map(({ slug, version: v }) => ({ slug, version: v }));
+
   // se il tema dichiara la stessa versione di WordPress, è WordPress che l'ha aggiunta: non è la versione del tema
   for (const t of themes) if (t.version && t.version === version) t.version = null;
-  return { detected: true, version, versionFrom, themes };
+  return { detected: true, version, versionFrom, themes, plugins, pluginCount: slugs.size };
 }
 
 /** CSS interno (<style>) e fogli di stile collegati. */

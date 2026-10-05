@@ -214,3 +214,70 @@ test('Report: ultimo articolo e ultima modifica (soglie 12 e 24 mesi)', () => {
   const none = run({ lastPost: { date: null }, lastModified: null });
   assert.ok(!none.section || !none.section.rows.some((r) => /articolo|modifica/.test(r.label)));
 });
+
+import { parsePhpVersion } from '../src/checks/site.js';
+import { phpSupportEnd, pluginBehind } from '../src/extras.js';
+
+test('PHP: lettura della versione e fine supporto', () => {
+  assert.equal(parsePhpVersion('PHP/8.3.31, PleskLin'), '8.3.31');
+  assert.equal(parsePhpVersion('PHP/7.4.33'), '7.4.33');
+  assert.equal(parsePhpVersion('Express'), null);
+  assert.equal(parsePhpVersion(null), null);
+  assert.equal(phpSupportEnd('8.1.2'), '2025-12-31');
+  assert.equal(phpSupportEnd('8.3.31'), '2027-12-31');
+  assert.ok(phpSupportEnd('7.4.33') < '2023-01-01');
+  assert.equal(phpSupportEnd('9.9.0'), null); // ramo che non conosco: nessun giudizio
+});
+
+test('Plugin: rilevamento dai file e confronto di versione', () => {
+  const wp = detectWordPress(`<meta name="generator" content="WordPress 6.8.1">
+    <link href="/wp-content/plugins/elementor/assets/css/frontend.min.css?ver=3.20.1">
+    <script src="/wp-content/plugins/elementor/assets/js/frontend.min.js?ver=3.20.1"></script>
+    <script src="/wp-content/plugins/contact-form-7/includes/js/index.js?ver=5.9.3"></script>
+    <script src="/wp-content/plugins/akismet/_inc/a.js?ver=6.8.1"></script>
+    <script src="/wp-content/plugins/senza-versione/a.js"></script>
+    <script src="/wp-content/plugins/orologio/a.js?ver=1696239123"></script>`);
+  assert.deepEqual(wp.plugins.map((p) => `${p.slug}@${p.version}`), ['elementor@3.20.1', 'contact-form-7@5.9.3']);
+  assert.equal(wp.pluginCount, 5);                // akismet, senza-versione e orologio contano come rilevati ma non confrontabili
+  assert.equal(pluginBehind('3.20.1', '3.32.0'), 'minor6');
+  assert.equal(pluginBehind('5.9.3', '6.1.7'), 'major');
+  assert.equal(pluginBehind('6.1.0', '6.1.7'), null);
+  assert.equal(pluginBehind('6.1.0', '6.3.0'), null);
+  assert.equal(pluginBehind('6.1.0', '6.4.0'), 'minor3');
+});
+
+test('Report: PHP e plugin', () => {
+  const now = Date.parse('2026-10-05T10:00:00Z');
+  const base = { fonts: [], colors: { distinct: 0, families: 0, top: [] }, cssFiles: 0, favicon: { ok: true }, year: 2026 };
+  const run = (x) => buildExtras({ ...base, ...x }, {}, now)[1];
+
+  const old = run({ php: '7.4.33', wp: { detected: true, version: '7.1.2', latest: '7.1.2', themes: [] } });
+  assert.equal(old.issues.find((i) => i.id === 'php-version').severity, 'alta');
+  assert.match(old.issues.find((i) => i.id === 'php-version').title, /non riceve più/);
+  const soon = run({ php: '8.2.10', wp: { detected: false } });
+  assert.equal(soon.issues.find((i) => i.id === 'php-version').severity, 'bassa');
+  assert.match(soon.issues.find((i) => i.id === 'php-version').title, /dicembre 2026/);
+  const fine = run({ php: '8.3.31', wp: { detected: false } });
+  assert.equal(fine.issues.length, 0);
+  assert.ok(fine.passed.includes('Versione di PHP supportata'));
+  const eol1 = run({ php: '8.1.5', wp: { detected: false } });
+  assert.equal(eol1.issues.find((i) => i.id === 'php-version').severity, 'media');   // scaduta da meno di un anno
+
+  const wp = { detected: true, version: '7.1.2', latest: '7.1.2', themes: [], pluginCount: 6, plugins: [
+    { slug: 'elementor', name: 'Elementor', version: '3.20.1', latest: '3.32.0', lastUpdated: '2026-09-10 3:21pm GMT', org: true },
+    { slug: 'vecchio', name: 'Vecchio Plugin', version: '1.0.0', latest: '1.0.2', lastUpdated: '2022-01-05 1:00pm GMT', org: true },
+    { slug: 'ok', name: 'Ok', version: '2.1.0', latest: '2.1.0', lastUpdated: '2026-08-01 1:00pm GMT', org: true },
+    { slug: 'premium', version: '1.0.0' },
+  ] };
+  const r = run({ wp });
+  const out = r.issues.find((i) => i.id === 'plugins-outdated');
+  assert.equal(out.severity, 'media');
+  assert.match(out.title, /Il plugin Elementor non è aggiornato/);
+  assert.match(out.meaning, /3\.20\.1, ultima 3\.32\.0/);
+  assert.match(r.issues.find((i) => i.id === 'plugins-abandoned').title, /Vecchio Plugin/);
+  assert.ok(r.section.rows.some((row) => row.label === 'Plugin controllati' && row.value === '3 su 6'));
+
+  const clean = run({ wp: { ...wp, plugins: [wp.plugins[2]] } });
+  assert.ok(clean.passed.includes('Plugin aggiornati'));
+  assert.equal(clean.issues.length, 0);
+});
