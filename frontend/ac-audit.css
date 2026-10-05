@@ -199,6 +199,9 @@
 .ac-audit .ac-swatch { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ac-muted); }
 .ac-audit .ac-swatch i { width: 22px; height: 22px; border: 1px solid var(--ac-line); border-radius: 6px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
+/* I titoli prendono il colore del report, non quello del tema (in stampa il bianco del tema sbiadirebbe) */
+.ac-audit .ac-report :is(h2, h3, h4) { color: var(--ac-ink); }
+
 /* Invito finale */
 .ac-audit .ac-cta { padding: 30px; color: var(--ac-cta-fg); background: var(--ac-cta-bg); border-radius: var(--ac-radius); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .ac-audit .ac-cta h2 { font-size: 24px; line-height: 1.25; margin-bottom: 8px; color: var(--ac-cta-fg); }

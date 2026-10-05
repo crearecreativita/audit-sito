@@ -187,6 +187,8 @@
 .ac-audit .ac-swatches { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 .ac-audit .ac-swatch { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ac-muted); }
 .ac-audit .ac-swatch i { width: 22px; height: 22px; border: 1px solid var(--ac-line); border-radius: 6px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+/* I titoli prendono il colore del report, non quello del tema (in stampa il bianco del tema sbiadirebbe) */
+.ac-audit .ac-report :is(h2, h3, h4) { color: var(--ac-ink); }
 /* Invito finale */
 .ac-audit .ac-cta { padding: 30px; color: var(--ac-cta-fg); background: var(--ac-cta-bg); border-radius: var(--ac-radius); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .ac-audit .ac-cta h2 { font-size: 24px; line-height: 1.25; margin-bottom: 8px; color: var(--ac-cta-fg); }
@@ -592,6 +594,7 @@
       rep.passed.forEach(function (p) { good.appendChild(el('li', { text: p })); });
       kids.push(el('section', null, el('h2', { 'class': 'ac-section-title', text: 'Cosa va già bene' }), good));
     }
+    kids.push(el('div', { 'class': 'ac-r-foot' }, actionsRow()));
     var mailBody = 'Ciao Alessandro,\nho fatto l’analisi del mio sito ' + rep.url + ' (voto ' + rep.score + '/100) e vorrei parlarne.\n';
     var ctaActions = el('div', { 'class': 'ac-cta-actions' },
       CONTACT ? el('a', { 'class': 'ac-btn ac-btn--brand', href: CONTACT, text: 'Vai alla pagina contatti' }) : null,
@@ -602,7 +605,6 @@
       ctaActions,
       el('p', { 'class': 'ac-cta-print', text: [MAIL, CONTACT].filter(Boolean).join(' · ') })));
     kids.push(el('p', { 'class': 'ac-note', text: 'Analisi automatica della home page, fatta con gli strumenti di Google (PageSpeed Insights) e con controlli propri. È un punto di partenza, non una perizia: alcuni dettagli vanno guardati a mano.' }));
-    kids.push(el('div', { 'class': 'ac-r-foot' }, actionsRow()));
     kids.forEach(function (k) { reportBox.appendChild(k); });
     show(reportBox, true);
     reportBox.scrollIntoView && reportBox.scrollIntoView({ behavior: 'smooth', block: 'start' });

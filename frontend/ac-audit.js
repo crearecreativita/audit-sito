@@ -359,6 +359,8 @@
       kids.push(el('section', null, el('h2', { 'class': 'ac-section-title', text: 'Cosa va già bene' }), good));
     }
 
+    kids.push(el('div', { 'class': 'ac-r-foot' }, actionsRow()));
+
     var mailBody = 'Ciao Alessandro,\nho fatto l’analisi del mio sito ' + rep.url + ' (voto ' + rep.score + '/100) e vorrei parlarne.\n';
     var ctaActions = el('div', { 'class': 'ac-cta-actions' },
       CONTACT ? el('a', { 'class': 'ac-btn ac-btn--brand', href: CONTACT, text: 'Vai alla pagina contatti' }) : null,
@@ -370,8 +372,6 @@
       el('p', { 'class': 'ac-cta-print', text: [MAIL, CONTACT].filter(Boolean).join(' · ') })));
 
     kids.push(el('p', { 'class': 'ac-note', text: 'Analisi automatica della home page, fatta con gli strumenti di Google (PageSpeed Insights) e con controlli propri. È un punto di partenza, non una perizia: alcuni dettagli vanno guardati a mano.' }));
-
-    kids.push(el('div', { 'class': 'ac-r-foot' }, actionsRow()));
 
     kids.forEach(function (k) { reportBox.appendChild(k); });
     show(reportBox, true);
