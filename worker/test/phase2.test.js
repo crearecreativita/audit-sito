@@ -247,3 +247,23 @@ test('Report: PHP', () => {
   const eol1 = run({ php: '8.1.5', wp: { detected: false } });
   assert.equal(eol1.issues.find((i) => i.id === 'php-version').severity, 'media');   // scaduta da meno di un anno
 });
+
+test('PHP: se la home (cache) non la dichiara, la versione si legge dal feed o dall’API REST', async () => {
+  const mk = (feedHeaders, restHeaders) => async (input) => {
+    const url = String(input);
+    const R = (b, s = 200, h = {}) => new Response(b, { status: s, headers: h });
+    if (url === 'https://cache.it/') return R('<html><head><link rel="alternate" type="application/rss+xml" href="/feed/"></head><body>/wp-content/x.png</body></html>', 200, { 'content-type': 'text/html', 'x-powered-by': 'PleskLin' });
+    if (url === 'https://cache.it/feed/') return R('<rss><channel><item><pubDate>Fri, 10 Mar 2023 09:00:00 +0000</pubDate></item></channel></rss>', 200, feedHeaders);
+    if (url === 'https://cache.it/wp-json/') return R('{}', 200, restHeaders);
+    return R('nope', 404);
+  };
+  const site = { finalUrl: 'https://cache.it/', seo: { hasIconLink: true }, php: null };
+  const dalFeed = await collectExtras(site, { fetchImpl: mk({ 'x-powered-by': 'PHP/8.3.31' }, {}) });
+  assert.equal(dalFeed.php, '8.3.31');
+  const dalRest = await collectExtras(site, { fetchImpl: mk({}, { 'x-powered-by': 'PHP/8.2.20' }) });
+  assert.equal(dalRest.php, '8.2.20');
+  const nessuna = await collectExtras(site, { fetchImpl: mk({}, {}) });
+  assert.equal(nessuna.php, null);
+  const dichiarata = await collectExtras({ ...site, php: '8.4.1' }, { fetchImpl: mk({ 'x-powered-by': 'PHP/7.4.0' }, {}) });
+  assert.equal(dichiarata.php, '8.4.1');   // quella della home ha la precedenza
+});

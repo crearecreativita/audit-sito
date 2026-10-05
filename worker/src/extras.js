@@ -1,5 +1,6 @@
 // Fase 2: identità visiva (font, colori, favicon) e segnali di abbandono (anno nel footer, WordPress, tema).
 import { safeFetch } from './fetcher.js';
+import { parsePhpVersion } from './checks/site.js';
 import { parseTargetUrl } from './validate.js';
 import { copyrightYear, detectWordPress, styleSources, feedLinks } from './html.js';
 import { analyzeCss, finalizeCss, colorFamilies, googleFontFamilies } from './css.js';
@@ -36,8 +37,12 @@ export function releasesBehind(found, latest) {
 export async function collectExtras(site, { fetchImpl = fetch } = {}) {
   const out = { fonts: [], googleFonts: [], colors: { distinct: 0, families: 0, top: [] }, cssFiles: 0, favicon: { ok: !!site.seo?.hasIconLink, via: site.seo?.hasIconLink ? 'link' : null }, year: null, wp: { detected: false } };
 
+  out.php = site.php || null;
+  const takePhp = (res) => { if (!out.php && res) out.php = parsePhpVersion(res.headers.get('x-powered-by')); };
+
   const home = await safeFetch(site.finalUrl, { fetchImpl, timeoutMs: 15000, maxBytes: 1_500_000 });
   const html = home.text;
+  takePhp(home);
 
   out.year = copyrightYear(html);
   out.wp = detectWordPress(html);
@@ -77,7 +82,6 @@ export async function collectExtras(site, { fetchImpl = fetch } = {}) {
 
   // Data dell'ultimo articolo: dal feed del sito, poi (solo WordPress) dall'API REST
   out.lastModified = site.lastModified || null;
-  out.php = site.php || null;
   out.lastPost = { date: null, source: null };
   const origin = new URL(home.finalUrl).origin;
   const feeds = [];
@@ -86,6 +90,7 @@ export async function collectExtras(site, { fetchImpl = fetch } = {}) {
   }
   for (const u of feeds.slice(0, 3)) {
     const r = await safeFetch(u, { fetchImpl, timeoutMs: 6000, maxBytes: 300_000, headers: { accept: 'application/rss+xml, application/atom+xml, text/xml, */*;q=0.5' } }).catch(() => null);
+    takePhp(r); // la home arriva spesso dalla cache e non porta la versione di PHP: le risposte dinamiche sì
     const d = r && r.status === 200 ? parseFeedLatest(r.text) : null;
     if (d) { out.lastPost = { date: d, source: 'feed' }; break; }
   }
@@ -95,6 +100,11 @@ export async function collectExtras(site, { fetchImpl = fetch } = {}) {
       const t = r && r.status === 200 ? Date.parse(JSON.parse(r.text)[0].date_gmt + 'Z') : NaN;
       if (Number.isFinite(t) && t < Date.now() + 86400000) out.lastPost = { date: new Date(t).toISOString(), source: 'rest' };
     } catch { /* risposta non valida */ }
+  }
+
+  // Ancora nessuna versione di PHP: su WordPress una richiesta leggera all'API REST (sempre dinamica)
+  if (!out.php && out.wp.detected) {
+    takePhp(await safeFetch(origin + '/wp-json/', { fetchImpl, timeoutMs: 6000, body: false }).catch(() => null));
   }
 
   // Favicon: se non c'è <link>, proviamo /favicon.ico
