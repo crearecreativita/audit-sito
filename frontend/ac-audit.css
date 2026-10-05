@@ -61,6 +61,18 @@
   border: 1.5px solid var(--ac-field-border); border-radius: 10px; box-shadow: none; outline: none; appearance: none;
 }
 .ac-audit .ac-field input:focus { border-color: var(--ac-ink); box-shadow: 0 0 0 3px var(--ac-brand); }
+/* I temi (Elementor compreso) spesso cambiano colore e sfondo dei campi in focus: qui li blocchiamo */
+.ac-audit .ac-field input[type="text"], .ac-audit .ac-field input[type="email"],
+.ac-audit .ac-field input[type="text"]:hover, .ac-audit .ac-field input[type="email"]:hover,
+.ac-audit .ac-field input[type="text"]:focus, .ac-audit .ac-field input[type="email"]:focus,
+.ac-audit .ac-field input[type="text"]:active, .ac-audit .ac-field input[type="email"]:active {
+  color: var(--ac-ink) !important; -webkit-text-fill-color: var(--ac-ink) !important; caret-color: var(--ac-ink) !important;
+  background-color: var(--ac-field-bg) !important; background-image: none !important;
+}
+.ac-audit .ac-field input:-webkit-autofill, .ac-audit .ac-field input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--ac-ink) !important; box-shadow: 0 0 0 100px var(--ac-field-bg) inset !important; caret-color: var(--ac-ink) !important;
+}
+.ac-audit .ac-field input::placeholder { color: var(--ac-muted) !important; -webkit-text-fill-color: var(--ac-muted) !important; opacity: .8; }
 .ac-audit .ac-hint { margin-top: 6px; font-size: 14px; color: var(--ac-muted); }
 .ac-audit .ac-hp { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; overflow: hidden; }
 .ac-audit .ac-consent { display: grid; grid-template-columns: 24px 1fr; gap: 12px; align-items: start; font-size: 15px; }
