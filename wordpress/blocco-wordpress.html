@@ -23,8 +23,8 @@
   --ac-slate-soft: #eceef2;
   --ac-accent: #f92273;
   --ac-btn-bg: #f92273;
-  --ac-btn-fg: #1b1a1c;
-  --ac-btn-hover: #ff4d90;
+  --ac-btn-fg: #ffffff;
+  --ac-btn-hover: #d6175f;
   --ac-err-bg: #4a1226;
   --ac-err-fg: #ffd9e6;
   --ac-tick: #7fc200;
@@ -77,6 +77,8 @@
 .ac-audit .ac-btn--ghost:hover { color: #1b1a1c; background: var(--ac-brand); border-color: var(--ac-brand); }
 .ac-audit .ac-btn--brand { color: #1b1a1c; background: var(--ac-brand); border-color: var(--ac-brand); }
 .ac-audit .ac-btn--brand:hover { color: #1b1a1c; background: #ff4d90; border-color: #ff4d90; }
+/* testo bianco su rosa: serve testo grande e in grassetto per restare leggibile */
+.ac-audit .ac-btn:not(.ac-btn--ghost):not(.ac-btn--brand) { font-size: 19px; }
 .ac-audit .ac-btn--small { min-height: 42px; padding: 0 20px; font-size: 15px; }
 /* Avanzamento */
 .ac-audit .ac-progress { padding: 28px; background: var(--ac-soft); border: 1px solid var(--ac-line); border-radius: var(--ac-radius); }
