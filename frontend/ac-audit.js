@@ -312,7 +312,7 @@
     var againBtn = el('button', { 'class': 'ac-btn ac-btn--ghost ac-btn--small', type: 'button', text: 'Analizza un altro sito' });
     againBtn.addEventListener('click', resetForm);
     kids.push(el('div', { 'class': 'ac-r-head' },
-      el('div', null, el('h2', { text: 'Analisi di ' + (rep.host || rep.url) }), el('p', { 'class': 'ac-r-date', text: 'Eseguita il ' + date + ' · crearecreativita.it' })),
+      el('div', null, el('h2', { text: 'Analisi di ' + (rep.host || rep.url) }), el('p', { 'class': 'ac-r-date', text: 'Eseguita il ' + date + ' · Analisi gratuita di Creare Creatività' })),
       el('div', { 'class': 'ac-r-actions' }, printBtn, againBtn)));
 
     var t = tone(rep.score);
@@ -361,7 +361,7 @@
       CONTACT ? el('a', { 'class': 'ac-btn ac-btn--brand', href: CONTACT, text: 'Vai alla pagina contatti' }) : null,
       MAIL ? el('a', { 'class': 'ac-btn ac-btn--ghost', href: 'mailto:' + MAIL + '?subject=' + encodeURIComponent('Analisi del sito ' + (rep.host || '')) + '&body=' + encodeURIComponent(mailBody), text: 'Scrivimi una mail' }) : null);
     kids.push(el('section', { 'class': 'ac-cta' },
-      el('h2', { text: 'Vuoi che lo sistemi? Scrivimi' }),
+      el('h2', { text: 'Vuoi migliorare il tuo sito web?' }),
       el('p', { text: 'Sono Alessandro, grafico e web designer a Padova. Se vuoi, guardiamo insieme questo report e ti dico cosa farei per primo, senza impegno.' }),
       ctaActions,
       el('p', { 'class': 'ac-cta-print', text: [MAIL, CONTACT].filter(Boolean).join(' · ') })));
