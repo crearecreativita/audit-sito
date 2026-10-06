@@ -220,3 +220,65 @@ export function feedLinks(html, baseUrl) {
   const comments = out.filter((u) => /comment/i.test(u));
   return [...new Set([...main, ...comments])];
 }
+
+/* ───────── Tecnologie datate e piattaforma ───────── */
+
+const highest = (versions) => versions.sort((a, b) => {
+  const pa = a.split('.').map(Number), pb = b.split('.').map(Number);
+  for (let i = 0; i < 3; i++) { const d = (pb[i] || 0) - (pa[i] || 0); if (d) return d; }
+  return 0;
+})[0] || null;
+
+function findVersions(html, patterns) {
+  const found = [];
+  for (const re of patterns) for (const m of html.matchAll(re)) if (/^\d{1,2}\.\d{1,2}(\.\d{1,3})?$/.test(m[1])) found.push(m[1]);
+  return found;
+}
+
+/** jQuery e Bootstrap letti dai nomi dei file caricati (versione più alta trovata), tag HTML obsoleti, Flash. */
+export function detectLegacyTech(rawHtml) {
+  const jquery = highest(findVersions(rawHtml, [
+    /jquery[-.](\d+\.\d+(?:\.\d+)?)(?:\.min)?\.js/gi,
+    /ajax\/libs\/jquery\/(\d+\.\d+(?:\.\d+)?)\//gi,
+    /\/jquery(?:\.min)?\.js\?ver=(\d+\.\d+(?:\.\d+)?)/gi,
+  ]));
+  const bootstrap = highest(findVersions(rawHtml, [
+    /bootstrap(?:cdn\.com)?\/(\d+\.\d+(?:\.\d+)?)\//gi,
+    /bootstrap@(\d+\.\d+(?:\.\d+)?)/gi,
+    /bootstrap(?:\.min)?\.(?:css|js)\?ver=(\d+\.\d+(?:\.\d+)?)/gi,
+    /bootstrap[-.](\d+\.\d+(?:\.\d+)?)(?:\.min)?\.(?:css|js)/gi,
+  ]));
+  const clean = cleanHtml(rawHtml);
+  const obsoleteTags = (clean.match(/<(?:font|center|marquee|blink)\b/gi) || []).length;
+  const flash = /\.swf\b|application\/x-shockwave-flash|swfobject|clsid:d27cdb6e/i.test(rawHtml);
+  return { jquery, bootstrap, obsoleteTags, flash };
+}
+
+/** Piattaforma con cui è fatto il sito (per te: serve a capire che tipo di cliente è). Stringa vuota se non si capisce. */
+export function detectPlatform(rawHtml, headers) {
+  const h = (n) => (headers && typeof headers.get === 'function' ? headers.get(n) || '' : '');
+  const metas = getTags(rawHtml, 'meta');
+  // i siti hanno spesso più meta "generator" (WordPress, Elementor, Site Kit…): si leggono tutti
+  const gen = metas.filter((a) => (a.name || '').toLowerCase() === 'generator').map((a) => a.content || '').join(' | ');
+  const t = (re) => re.test(rawHtml);
+  if (h('x-wix-request-id') || t(/wixstatic\.com|static\.parastorage\.com/i) || /(^|\| )Wix/i.test(gen)) return 'Wix';
+  if (t(/static1\.squarespace\.com|squarespace-cdn/i) || /Squarespace/i.test(gen)) return 'Squarespace';
+  if (h('x-shopid') || t(/cdn\.shopify\.com|Shopify\.theme/i)) return 'Shopify';
+  if (t(/data-wf-page|assets-global\.website-files\.com/i) || /Webflow/i.test(gen)) return 'Webflow';
+  if (t(/img1\.wsimg\.com|websitebuilder\.godaddy/i)) return 'GoDaddy Website Builder';
+  if (t(/\.jimdo(?:cdn|static)?\.com|jimdo-cdn/i) || /Jimdo/i.test(gen)) return 'Jimdo';
+  if (t(/cdn\d*\.editmysite\.com|weebly\.com/i)) return 'Weebly';
+  if (/PrestaShop/i.test(gen) || t(/\/modules\/ps_|prestashop\.com|var prestashop/i)) return 'PrestaShop';
+  if (t(/\/static\/version\d+\/frontend\/|Magento_/i) || /Magento/i.test(gen)) return 'Magento';
+  if (/Joomla/i.test(gen) || t(/\/media\/jui\/|\/media\/system\/js\/|com_content/i)) return 'Joomla';
+  if (/Drupal/i.test(gen) || /Drupal/i.test(h('x-generator')) || t(/\/sites\/default\/files\/|Drupal\.settings/i)) return 'Drupal';
+  if (t(/\/wp-content\/|\/wp-includes\//i) || /(^|\| )WordPress/i.test(gen)) {
+    const builder = /Elementor/i.test(gen) || t(/\/plugins\/elementor\//i) ? 'Elementor'
+      : t(/\/themes\/Divi\/|et_pb_section/i) ? 'Divi'
+      : t(/js_composer|wpb_wrapper/i) ? 'WPBakery'
+      : t(/fl-builder/i) ? 'Beaver Builder'
+      : t(/\/plugins\/oxygen|oxy-/i) ? 'Oxygen' : '';
+    return builder ? `WordPress (${builder})` : 'WordPress';
+  }
+  return '';
+}

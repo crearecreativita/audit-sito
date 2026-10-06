@@ -267,3 +267,51 @@ test('PHP: se la home (cache) non la dichiara, la versione si legge dal feed o d
   const dichiarata = await collectExtras({ ...site, php: '8.4.1' }, { fetchImpl: mk({ 'x-powered-by': 'PHP/7.4.0' }, {}) });
   assert.equal(dichiarata.php, '8.4.1');   // quella della home ha la precedenza
 });
+
+import { detectLegacyTech, detectPlatform } from '../src/html.js';
+
+test('Tecnologie datate: jQuery, Bootstrap, tag obsoleti, Flash', () => {
+  const vecchio = detectLegacyTech(`<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="/js/jquery-migrate-3.4.1.min.js"></script><script src="/js/jquery-ui-1.12.1.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <body><center><font color="red">Benvenuti</font></center><embed src="intro.swf"></body>`);
+  assert.equal(vecchio.jquery, '1.12.4');          // migrate e ui non contano
+  assert.equal(vecchio.bootstrap, '3.3.7');
+  assert.equal(vecchio.obsoleteTags, 2);
+  assert.equal(vecchio.flash, true);
+  const wp = detectLegacyTech('<script src="/wp-includes/js/jquery/jquery.min.js?ver=3.7.1"></script><script src="/wp-includes/js/jquery/jquery-migrate.min.js?ver=3.4.1"></script><link href="/css/bootstrap.min.css?ver=5.3.2">');
+  assert.equal(wp.jquery, '3.7.1');
+  assert.equal(wp.bootstrap, '5.3.2');
+  const piu = detectLegacyTech('<script src="a/jquery-3.6.0.min.js"></script><script src="b/jquery-1.8.3.js"></script>');
+  assert.equal(piu.jquery, '3.6.0');                // si prende la più alta: meno falsi allarmi
+  assert.deepEqual(detectLegacyTech('<p>niente</p>'), { jquery: null, bootstrap: null, obsoleteTags: 0, flash: false });
+});
+
+test('Piattaforma', () => {
+  const H = (o = {}) => ({ get: (n) => o[n.toLowerCase()] || null });
+  assert.equal(detectPlatform('<img src="https://static.wixstatic.com/a.jpg">', H()), 'Wix');
+  assert.equal(detectPlatform('<link href="https://cdn.shopify.com/s/x.css">', H()), 'Shopify');
+  assert.equal(detectPlatform('<meta name="generator" content="Joomla! - Open Source Content Management">', H()), 'Joomla');
+  assert.equal(detectPlatform('<meta name="generator" content="WordPress 6.8"><meta name="generator" content="Elementor 3.30">', H()), 'WordPress (Elementor)');
+  assert.equal(detectPlatform('<link href="/wp-content/themes/x/style.css">', H()), 'WordPress');
+  assert.equal(detectPlatform('<p>sito scritto a mano</p>', H()), '');
+  assert.equal(detectPlatform('<p>x</p>', H({ 'x-wix-request-id': 'abc' })), 'Wix');
+});
+
+test('Report: tecnologie datate (gravità e voci)', () => {
+  const now = Date.parse('2026-10-05T10:00:00Z');
+  const base = { fonts: [], colors: { distinct: 0, families: 0, top: [] }, cssFiles: 0, favicon: { ok: true }, year: 2026, wp: { detected: false } };
+  const run = (legacy) => buildExtras({ ...base, legacy }, {}, now)[1];
+  const old = run({ jquery: '1.12.4', bootstrap: '3.3.7', obsoleteTags: 3, flash: true });
+  const sev = (id) => old.issues.find((i) => i.id === id).severity;
+  assert.equal(sev('jquery'), 'media'); assert.equal(sev('bootstrap'), 'media'); assert.equal(sev('obsolete-html'), 'bassa'); assert.equal(sev('flash'), 'alta');
+  assert.match(old.issues.find((i) => i.id === 'bootstrap').meaning, /luglio 2019/);
+  assert.equal(run({ jquery: '3.4.1', bootstrap: '4.6.0', obsoleteTags: 0, flash: false }).issues.map((i) => i.severity).join(), 'bassa,bassa');
+  const ok = run({ jquery: '3.7.1', bootstrap: '5.3.2', obsoleteTags: 0, flash: false });
+  assert.equal(ok.issues.length, 0);
+  assert.ok(ok.passed.includes('Librerie di base aggiornate'));
+  assert.ok(ok.section.rows.some((r) => r.label === 'Libreria jQuery' && r.value === '3.7.1' && r.status === 'ok'));
+  const nulla = run({ jquery: null, bootstrap: null, obsoleteTags: 0, flash: false });
+  assert.equal(nulla.issues.length, 0);
+  assert.ok(!nulla.passed.includes('Librerie di base aggiornate'));
+});

@@ -2,7 +2,7 @@
 import { safeFetch } from './fetcher.js';
 import { parsePhpVersion } from './checks/site.js';
 import { parseTargetUrl } from './validate.js';
-import { copyrightYear, detectWordPress, styleSources, feedLinks } from './html.js';
+import { copyrightYear, detectWordPress, styleSources, feedLinks, detectLegacyTech, detectPlatform } from './html.js';
 import { analyzeCss, finalizeCss, colorFamilies, googleFontFamilies } from './css.js';
 
 const MAX_CSS_FILES = 6;
@@ -43,6 +43,8 @@ export async function collectExtras(site, { fetchImpl = fetch } = {}) {
   const home = await safeFetch(site.finalUrl, { fetchImpl, timeoutMs: 15000, maxBytes: 1_500_000 });
   const html = home.text;
   takePhp(home);
+  out.legacy = detectLegacyTech(html);
+  out.platform = detectPlatform(html, home.headers);
 
   out.year = copyrightYear(html);
   out.wp = detectWordPress(html);
@@ -262,6 +264,68 @@ export function buildExtras(x, site, now = Date.now()) {
         impact: 6,
       });
     }
+  }
+
+  const lg = x.legacy;
+  if (lg) {
+    const ver = (v) => v.split('.').map(Number);
+    let anyTech = false;
+    if (lg.jquery) {
+      anyTech = true;
+      const [maj, min] = ver(lg.jquery);
+      const old35 = maj < 3 || (maj === 3 && min < 5);
+      crows.push(row('Libreria jQuery', lg.jquery, maj < 3 ? 'bad' : old35 ? 'warn' : 'ok', 'Versione letta dai file che il sito carica.'));
+      if (old35) {
+        care.issues.push({
+          id: 'jquery', area: 'care', severity: maj < 3 ? 'media' : 'bassa',
+          title: maj < 3 ? `Il sito usa jQuery ${lg.jquery}, una versione molto vecchia` : `Il sito usa jQuery ${lg.jquery}, non aggiornata`,
+          meaning: `jQuery è una libreria che fa funzionare menu, slider e finestre del sito. Le versioni precedenti alla 3.5 hanno falle di sicurezza note${maj < 3 ? ', e la serie ' + maj + '.x non riceve più aggiornamenti' : ''}. La versione si legge dai file caricati, quindi può non coincidere al decimale con quella installata.`,
+          why: 'È uno dei segni più chiari di un sito costruito anni fa e poi lasciato com’è: finché nessuno aggiorna la libreria, le falle note restano aperte.',
+          fix: 'Si aggiorna jQuery (o si toglie, se non serve) insieme a tema e plugin che ne dipendono, provando prima su una copia perché i temi molto vecchi possono rompersi.',
+          impact: maj < 3 ? 18 : 6,
+        });
+      }
+    }
+    if (lg.bootstrap) {
+      anyTech = true;
+      const [maj] = ver(lg.bootstrap);
+      crows.push(row('Bootstrap', lg.bootstrap, maj <= 3 ? 'bad' : maj === 4 ? 'warn' : 'ok', 'Il framework che dà al sito griglia e componenti. Versione letta dai file caricati.'));
+      if (maj <= 4) {
+        const end = maj <= 3 ? 'luglio 2019' : 'gennaio 2023';
+        care.issues.push({
+          id: 'bootstrap', area: 'care', severity: maj <= 3 ? 'media' : 'bassa',
+          title: `Il sito usa Bootstrap ${lg.bootstrap}, ormai fuori supporto`,
+          meaning: `Bootstrap è il framework che dà al sito griglia e componenti. La versione ${maj} non riceve più correzioni dal ${end}.`,
+          why: 'Un sito costruito su una versione abbandonata invecchia più in fretta: da telefono si vede peggio e aggiornarlo, col tempo, costa di più.',
+          fix: 'Si pianifica un restyling su una base moderna: in genere conviene unirlo a un rifacimento della grafica.',
+          impact: maj <= 3 ? 14 : 5,
+        });
+      }
+    }
+    if (lg.obsoleteTags >= 2) {
+      anyTech = true;
+      care.issues.push({
+        id: 'obsolete-html', area: 'care', severity: 'bassa',
+        title: 'Nella home c’è codice HTML di vent’anni fa',
+        meaning: `Ho trovato ${lg.obsoleteTags} tag come <font> o <center>, abbandonati dagli standard del web da molti anni.`,
+        why: 'Indica parti del sito mai ripensate dall’epoca dei siti scritti a mano: spesso si vedono male da telefono e il sito sembra datato.',
+        fix: 'Si riscrivono con stili moderni (CSS) durante un restyling.',
+        impact: 5,
+      });
+    }
+    if (lg.flash) {
+      anyTech = true;
+      care.issues.push({
+        id: 'flash', area: 'care', severity: 'alta',
+        title: 'Ci sono contenuti Flash che non si vedono più',
+        meaning: 'Flash è stato disattivato da tutti i browser nel 2021: un’animazione, un menu o un video fatti con Flash oggi non si caricano.',
+        why: 'Chi visita trova uno spazio vuoto dove doveva esserci un contenuto, e il sito appare abbandonato.',
+        fix: 'Si sostituiscono con video, animazioni o immagini moderne.',
+        impact: 28,
+      });
+    }
+    const techClean = !care.issues.some((i) => ['jquery', 'bootstrap', 'obsolete-html', 'flash'].includes(i.id));
+    if (anyTech && techClean) care.passed.push('Librerie di base aggiornate');
   }
 
   if (x.php) {

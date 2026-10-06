@@ -222,6 +222,12 @@ test('Flusso completo: start → step → finish → lead salvato', async () => 
   assert.equal(saved[0].email, 'mario@rossi.it');
   assert.equal(saved[0].secret, 's3');
   assert.equal(saved[0].score, fin.body.report.score);
+  // dati in più per il foglio
+  assert.deepEqual(Object.keys(saved[0].scores).sort(), ['mobile', 'seo', 'speed', 'trust']);
+  assert.equal(saved[0].scores.speed, fin.body.report.areas.find((a) => a.id === 'speed').score);
+  assert.equal(saved[0].counts.alta, fin.body.report.counts.alta);
+  assert.deepEqual(saved[0].top, fin.body.report.issues.slice(0, 3).map((i) => i.title));
+  assert.equal(typeof saved[0].platform, 'string');
 
   // secondo finish con lo stesso token → rifiutato
   const again = await post(env, '/api/finish', { token: start.body.token, steps: out }, deps);

@@ -165,6 +165,12 @@ async function handleFinish(request, env, ctx, deps) {
   const report = buildReport({ steps, now: deps.now(), extras });
   lead.score = report.score;
   lead.label = report.label?.text || '';
+  // dati in più per te: aiutano a rispondere subito con cognizione di causa
+  const areaScore = (id) => report.areas.find((a) => a.id === id)?.score ?? null;
+  lead.scores = { speed: areaScore('speed'), mobile: areaScore('mobile'), seo: areaScore('seo'), trust: areaScore('trust') };
+  lead.counts = report.counts;
+  lead.top = report.issues.slice(0, 3).map((i) => i.title);
+  lead.platform = (steps.style?.ok && steps.style.data.platform) || '';
   lead.outcome = report.partial.desktopMissing ? 'ok (senza desktop)' : 'ok';
   await persistLead(env, ctx, tok.j, lead, deps);
 

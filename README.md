@@ -73,6 +73,8 @@ Ho scelto **Google Sheet + Apps Script** invece di Formspree: ti dà un archivio
 4. **Esegui il deployment → Nuovo deployment → Tipo: Applicazione web**. Esegui come: *Me*. Chi ha accesso: *Chiunque*. Autorizza i permessi (foglio e invio email) quando richiesto.
 5. Copia l'URL dell'app web (finisce con `/exec`): è il valore di `LEAD_WEBHOOK_URL`. `SECRET` è `LEAD_WEBHOOK_SECRET`.
 
+Nel foglio, oltre a email, sito e voto, finiscono: piattaforma del sito (WordPress, Wix, Shopify…), i quattro punteggi per area, quanti problemi ad alta priorità e le prime tre priorità. Le stesse informazioni compaiono nella mail di notifica. Lo script aggiunge da solo le colonne nuove all'intestazione di un foglio già esistente, senza toccare le righe vecchie.
+
 Se modifichi lo script, devi creare una **nuova versione** del deployment (Gestisci deployment → modifica → Nuova versione), altrimenti resta attiva la vecchia.
 
 Se il salvataggio dovesse fallire, il contatto non va perso: il Worker lo tiene 30 giorni nel KV (chiavi `lead:…`) e lo scrive nei log.
@@ -182,6 +184,7 @@ Ricordati di rigenerare con l'`apiUrl` vero (`node scripts/build.mjs`) prima di 
 
 - **Scadenza SSL**: un Worker non può leggere il certificato di un altro sito, quindi la data arriva dai registri pubblici di Certificate Transparency (Cert Spotter, gratuito, con limiti di richieste). Se il registro non risponde, il report scrive "non verificabile" e non penalizza.
 - **Cookie banner**: si cerca nel codice della home (gestori noti, testi tipici). Un banner caricato in modo insolito può sfuggire; per questo il problema compare solo se ci sono anche strumenti di tracciamento.
+- **Tecnologie datate**: jQuery e Bootstrap si leggono dai nomi dei file caricati (si prende la versione più alta trovata, per non dare falsi allarmi); i tag HTML obsoleti (`<font>`, `<center>`…) e Flash dal codice della home. Funziona solo se la versione compare nel nome del file.
 - **Colori e font**: letti dal CSS. Le palette predefinite di WordPress, Elementor e Bootstrap sono escluse; i CSS dei plugin vengono saltati quando è possibile, ma le cache che uniscono tutto in un file li rendono indistinguibili. Il report dice che è una stima.
 - **Siti dietro protezioni anti-bot**: il report spiega che il sito blocca l'analisi e il contatto viene salvato lo stesso, con l'esito nel foglio.
 - **Ultimo articolo e ultima modifica**: la data dell'ultimo articolo si legge dal feed RSS/Atom del sito (con l'API REST come ripiego su WordPress); `Last-Modified` è quello dichiarato dal server, che sui siti con cache indica spesso la data della cache. Per questo l'ultima modifica è solo un indizio, con gravità bassa, e se il server non la dichiara non compare nulla.

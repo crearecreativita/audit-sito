@@ -2,6 +2,7 @@
 
 export async function saveLead(env, lead, { fetchImpl = fetch } = {}) {
   if (!env.LEAD_WEBHOOK_URL) return { saved: false, reason: 'no_webhook' };
+  const t0 = Date.now();
   try {
     const res = await fetchImpl(env.LEAD_WEBHOOK_URL, {
       method: 'POST',
@@ -14,12 +15,12 @@ export async function saveLead(env, lead, { fetchImpl = fetch } = {}) {
     let ok = res.ok;
     let parsed = null;
     try { parsed = JSON.parse(text); ok = ok && parsed.ok === true; } catch { ok = false; }
-    if (ok) return { saved: true };
+    if (ok) { console.log('LEAD_WEBHOOK_OK', Date.now() - t0, 'ms'); return { saved: true }; }
     // dettagli per capire perché (mai il secret): stato HTTP e inizio della risposta
-    console.error('LEAD_WEBHOOK_RIFIUTATO', res.status, res.headers.get('content-type'), String(text).replace(/\s+/g, ' ').slice(0, 300));
+    console.error('LEAD_WEBHOOK_RIFIUTATO', Date.now() - t0, 'ms', res.status, res.headers.get('content-type'), String(text).replace(/\s+/g, ' ').slice(0, 300));
     return { saved: false, reason: 'webhook_rejected' };
   } catch (e) {
-    console.error('LEAD_WEBHOOK_NON_RAGGIUNGIBILE', e && e.name, e && e.message);
+    console.error('LEAD_WEBHOOK_NON_RAGGIUNGIBILE', Date.now() - t0, 'ms', e && e.name, e && e.message);
     return { saved: false, reason: 'webhook_unreachable' };
   }
 }
