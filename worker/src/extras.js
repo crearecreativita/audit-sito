@@ -149,7 +149,7 @@ export function phpSupportEnd(version) {
 
 const row = (label, value, status, hint, extra) => ({ label, value, status, ...(hint ? { hint } : {}), ...(extra || {}) });
 
-export function buildExtras(x, site, now = Date.now()) {
+export function buildExtras(x, site, now = Date.now(), psi = null) {
   const nowDate = new Date(now);
   const year = nowDate.getUTCFullYear();
 
@@ -166,6 +166,12 @@ export function buildExtras(x, site, now = Date.now()) {
     rows.push(row('Font diversi usati', String(fonts), fonts <= 2 ? 'ok' : fonts === 3 ? 'warn' : 'bad', fonts ? fontNames.slice(0, 6).join(', ') + (fonts > 6 ? '…' : '') : 'Il sito usa i caratteri di sistema.'));
     rows.push(row('Famiglie di colore (esclusi bianco, nero e grigi)', String(fam), fam <= 3 ? 'ok' : fam <= 5 ? 'warn' : 'bad',
       `${x.colors.distinct} colori diversi nel CSS; qui i più usati.`, { swatches: x.colors.top.map((c) => ({ hex: c.hex })) }));
+  }
+  // contrasto dei testi: riprende il dato di Google (calcolato sulla pagina disegnata), senza creare un secondo problema
+  if (psi && psi.scores && psi.scores.accessibility !== null && Array.isArray(psi.a11yFails)) {
+    const cf = psi.a11yFails.find((f) => f.id === 'color-contrast');
+    rows.push(row('Contrasto dei testi', cf ? `Da rivedere (${cf.n} ${cf.n === 1 ? 'punto' : 'punti'})` : 'Buono', cf ? 'warn' : 'ok',
+      cf ? 'Alcuni testi sono troppo simili allo sfondo. Dettagli nell’area Accessibilità e sicurezza.' : 'Misurato da Google sulla pagina disegnata, elemento per elemento.'));
   }
   rows.push(row('Icona del sito (favicon)', faviconOk ? 'Presente' : 'Mancante', faviconOk ? 'ok' : 'bad', 'La piccola icona nella scheda del browser e nei preferiti.'));
 

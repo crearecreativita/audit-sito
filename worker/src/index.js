@@ -161,7 +161,7 @@ async function handleFinish(request, env, ctx, deps) {
     return { ok: false, error: fatal };
   }
 
-  const extras = steps.style?.ok ? buildExtras(steps.style.data, steps.site.data, deps.now()) : [];
+  const extras = steps.style?.ok ? buildExtras(steps.style.data, steps.site.data, deps.now(), steps.psiMobile?.ok ? steps.psiMobile.data : null) : [];
   const report = buildReport({ steps, now: deps.now(), extras });
   lead.score = report.score;
   lead.label = report.label?.text || '';

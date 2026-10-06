@@ -331,6 +331,35 @@ function seoArea(site) {
   } else passed.push('Anteprima social completa');
   pts.push({ w: 10, v: ogCount === 3 ? 100 : ogCount === 0 ? 0 : 50 });
 
+  // struttura dei titoli (nel contenuto principale; i siti senza dati ricevuti saltano il controllo)
+  const hd = s.headings;
+  if (hd && hd.total > 0) {
+    const c = hd.counts;
+    const noH2 = c[2] === 0 && hd.textLength >= 1500;
+    rows.push(row('Struttura dei titoli', [c[1] && `${c[1]} H1`, c[2] && `${c[2]} H2`, c[3] && `${c[3]} H3`, (c[4] + c[5] + c[6]) && `${c[4] + c[5] + c[6]} più in basso`].filter(Boolean).join(', ') || '—',
+      noH2 || hd.skips || hd.empty ? 'warn' : 'ok', 'Letta dal contenuto principale della pagina, senza menu e piè di pagina.'));
+    if (noH2) {
+      issues.push(issue('h2-missing', 'seo', 'bassa', 'La pagina non ha titoli di secondo livello (H2)',
+        'Il testo è un blocco unico: ci sono molte righe, ma nessun H2 che le divida in argomenti.',
+        'Google e chi legge scorrono i titoli per capire di cosa parla la pagina: senza, un testo lungo è difficile da scandire.',
+        'Si dividono i testi in sezioni, ognuna con un titolo H2 che dice di cosa parla.', 9));
+    }
+    if (hd.skips) {
+      issues.push(issue('heading-skip', 'seo', 'bassa', `I titoli saltano un livello (${hd.firstSkip})`,
+        `Ad esempio da H1 si passa a H3 o H4, senza i livelli in mezzo${hd.skips > 1 ? ` (${hd.skips} salti in tutto)` : ''}. I livelli andrebbero scalati uno alla volta.`,
+        'Chi usa lo screen reader naviga per titoli: un salto fa pensare che manchi un pezzo. Spesso succede perché il livello è scelto per la grandezza del carattere.',
+        'Si imposta il livello giusto e si regola la dimensione dallo stile del tema o dal CSS, non dal tag.', 8));
+    }
+    if (hd.empty) {
+      issues.push(issue('heading-empty', 'seo', 'bassa', hd.empty === 1 ? 'C’è un titolo vuoto' : `Ci sono ${hd.empty} titoli vuoti`,
+        'Nel codice ci sono titoli (H2, H3…) senza nessun testo dentro: capita con widget lasciati vuoti o titoli nascosti.',
+        'Per Google e per gli screen reader un titolo vuoto è rumore: interrompe la struttura senza dire niente.',
+        'Si riempiono o si tolgono dall’editor della pagina.', 5));
+    }
+    if (!noH2 && !hd.skips && !hd.empty) passed.push('Titoli ben organizzati');
+    pts.push({ w: 6, v: 100 - (noH2 ? 25 : 0) - (hd.skips ? 25 : 0) - (hd.empty ? 10 : 0) });
+  }
+
   // canonical
   if (!s.canonical) {
     issues.push(issue('canonical', 'seo', 'bassa', 'Manca l’indirizzo "canonico" della pagina',
@@ -368,7 +397,7 @@ function trustArea(psiMobile, site, ssl) {
     const contrast = has(A11Y_CONTRAST);
     const names = has(A11Y_NAMES);
     const lang = has(A11Y_LANG);
-    const rest = fails.filter((f) => ![...A11Y_CONTRAST, ...A11Y_NAMES, ...A11Y_LANG, 'image-alt'].includes(f.id));
+    const rest = fails.filter((f) => ![...A11Y_CONTRAST, ...A11Y_NAMES, ...A11Y_LANG, 'image-alt', 'heading-order', 'empty-heading'].includes(f.id));
 
     if (contrast.length) {
       const n = contrast.reduce((s, f) => s + f.n, 0);

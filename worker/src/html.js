@@ -63,6 +63,31 @@ export function getH1s(clean) {
   return out;
 }
 
+/** Titoli del contenuto principale: <main> se c'è, altrimenti la pagina senza intestazione, piè di pagina, menu e barre laterali. */
+export function analyzeHeadings(clean) {
+  const mainM = /<main\b[\s\S]*?<\/main>/i.exec(clean);
+  const scope = mainM
+    ? mainM[0]
+    : clean.replace(/<(header|footer|nav|aside)\b[\s\S]*?<\/\1>/gi, '');
+  const levels = [];
+  let empty = 0;
+  for (const m of scope.matchAll(/<h([1-6])\b[^>]*>([\s\S]*?)<\/h\1>/gi)) {
+    const text = stripTags(m[2]) || ((/<img\b[^>]*\balt\s*=\s*["']([^"']+)["']/i.exec(m[2]) || [])[1] || '');
+    if (!text) { empty++; continue; }
+    levels.push(Number(m[1]));
+  }
+  const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+  for (const l of levels) counts[l]++;
+  // salto di livello: da un titolo si passa a uno più profondo di più di un livello (H1 → H3)
+  let skips = 0;
+  let firstSkip = '';
+  for (let i = 1; i < levels.length; i++) {
+    if (levels[i] - levels[i - 1] > 1) { skips++; if (!firstSkip) firstSkip = `H${levels[i - 1]} → H${levels[i]}`; }
+  }
+  const textLength = stripTags(scope).length;
+  return { counts, total: levels.length, empty, skips, firstSkip, textLength };
+}
+
 /** Analisi della home per SEO base e mobile. */
 export function analyzeHtml(html) {
   const clean = cleanHtml(html);
@@ -98,6 +123,7 @@ export function analyzeHtml(html) {
   return {
     title,
     description,
+    headings: analyzeHeadings(clean),
     h1Count: h1s.length,
     h1Texts: h1s.slice(0, 3),
     emptyH1: h1s.filter((t) => !t).length,

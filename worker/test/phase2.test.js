@@ -315,3 +315,59 @@ test('Report: tecnologie datate (gravità e voci)', () => {
   assert.equal(nulla.issues.length, 0);
   assert.ok(!nulla.passed.includes('Librerie di base aggiornate'));
 });
+
+import { analyzeHeadings } from '../src/html.js';
+import { cleanHtml } from '../src/html.js';
+
+test('Struttura dei titoli: conteggi, salti di livello, vuoti, solo contenuto principale', () => {
+  const page = `<header><h4>Menu</h4><h5>Chiamaci</h5></header>
+    <main><h1>Idraulico a Padova</h1><h2>Servizi</h2><h3>Caldaie</h3><h3>Perdite</h3><h2>Contatti</h2><h4>Orari</h4><h2></h2><h3><span> </span></h3></main>
+    <footer><h6>Note</h6></footer>`;
+  const h = analyzeHeadings(cleanHtml(page));
+  assert.deepEqual(h.counts, { 1: 1, 2: 2, 3: 2, 4: 1, 5: 0, 6: 0 });   // header e footer esclusi
+  assert.equal(h.skips, 1);
+  assert.equal(h.firstSkip, 'H2 → H4');
+  assert.equal(h.empty, 2);
+  // senza <main>: si tolgono header, footer, nav e aside
+  const h2 = analyzeHeadings(cleanHtml('<nav><h5>x</h5></nav><h1>Titolo</h1><aside><h4>y</h4></aside><h2>A</h2>'));
+  assert.deepEqual(h2.counts, { 1: 1, 2: 1, 3: 0, 4: 0, 5: 0, 6: 0 });
+  assert.equal(h2.skips, 0);
+  // titolo con sola immagine con alt vale come pieno
+  assert.equal(analyzeHeadings(cleanHtml('<main><h1><img src="a.png" alt="Logo Rossi"></h1></main>')).total, 1);
+});
+
+test('Report: titoli (H2 mancanti, salti, vuoti) e riga contrasto in Identità visiva', () => {
+  const mk = (headings) => ({ finalUrl: 'https://a.it/', host: 'a.it', https: true, httpToHttps: true, mixedContent: 0, cookies: { trackers: false, banner: false },
+    seo: { ...analyzeHtml(HOME_HTML), robotsTxt: true, sitemap: true, headings } });
+  const run = (headings) => buildReport({ steps: { psiMobile: { ok: true, data: reducePsi(psiFixture(), 'mobile') }, site: { ok: true, data: mk(headings) } } });
+  const flat = run({ counts: { 1: 1, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }, total: 1, empty: 0, skips: 0, firstSkip: '', textLength: 3000 });
+  assert.ok(flat.issues.find((i) => i.id === 'h2-missing'));
+  const short = run({ counts: { 1: 1, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }, total: 1, empty: 0, skips: 0, firstSkip: '', textLength: 400 });
+  assert.ok(!short.issues.find((i) => i.id === 'h2-missing'));          // pagina corta: nessun giudizio
+  const skip = run({ counts: { 1: 1, 2: 2, 3: 0, 4: 1, 5: 0, 6: 0 }, total: 4, empty: 1, skips: 1, firstSkip: 'H2 → H4', textLength: 3000 });
+  assert.match(skip.issues.find((i) => i.id === 'heading-skip').title, /H2 → H4/);
+  assert.ok(skip.issues.find((i) => i.id === 'heading-empty'));
+  const good = run({ counts: { 1: 1, 2: 3, 3: 2, 4: 0, 5: 0, 6: 0 }, total: 6, empty: 0, skips: 0, firstSkip: '', textLength: 3000 });
+  assert.ok(good.passed.includes('Titoli ben organizzati'));
+  assert.ok(!good.issues.some((i) => /^h2-|^heading-/.test(i.id)));
+  assert.equal(good.areas.find((a) => a.id === 'seo').rows.find((r) => r.label === 'Struttura dei titoli').value, '1 H1, 3 H2, 2 H3');
+  // il controllo di Google sull'ordine dei titoli non finisce più tra "altri controlli di accessibilità" (c'è la voce dedicata)
+  const psi = reducePsi(psiFixture({ a11y: 0.86 }), 'mobile');
+  psi.a11yFails = [{ id: 'heading-order', n: 2, w: 3 }, { id: 'empty-heading', n: 1, w: 2 }];
+  const ctrl = buildReport({ steps: { psiMobile: { ok: true, data: psi }, site: { ok: true, data: mk({ counts: { 1: 1, 2: 1, 3: 0, 4: 0, 5: 0, 6: 0 }, total: 2, empty: 0, skips: 0, firstSkip: '', textLength: 2000 }) } } });
+  assert.ok(!ctrl.issues.some((i) => i.id === 'a11y-other'));
+  // …mentre un altro controllo fallito continua a comparire
+  psi.a11yFails.push({ id: 'aria-hidden-focus', n: 1, w: 7 });
+  const ctrl2 = buildReport({ steps: { psiMobile: { ok: true, data: psi }, site: { ok: true, data: mk({ counts: { 1: 1, 2: 1, 3: 0, 4: 0, 5: 0, 6: 0 }, total: 2, empty: 0, skips: 0, firstSkip: '', textLength: 2000 }) } } });
+  assert.ok(ctrl2.issues.some((i) => i.id === 'a11y-other'));
+
+  // Identità visiva: contrasto dal dato di Google
+  const x = { fonts: [], colors: { distinct: 0, families: 0, top: [] }, cssFiles: 0, favicon: { ok: true }, year: 2026, wp: { detected: false } };
+  const withFail = buildExtras(x, {}, Date.now(), { scores: { accessibility: 80 }, a11yFails: [{ id: 'color-contrast', n: 3, w: 7 }] })[0];
+  assert.ok(withFail.section.rows.some((r) => r.label === 'Contrasto dei testi' && /3 punti/.test(r.value) && r.status === 'warn'));
+  const okc = buildExtras(x, {}, Date.now(), { scores: { accessibility: 97 }, a11yFails: [] })[0];
+  assert.ok(okc.section.rows.some((r) => r.label === 'Contrasto dei testi' && r.value === 'Buono'));
+  const none = buildExtras(x, {}, Date.now(), null)[0];
+  assert.ok(!none.section.rows.some((r) => r.label === 'Contrasto dei testi'));   // senza dati di Google: nessuna riga
+  assert.equal(withFail.issues.length, 0);                                       // nessun secondo problema
+});
