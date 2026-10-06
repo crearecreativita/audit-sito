@@ -1,6 +1,7 @@
 // Fase 2: identità visiva (font, colori, favicon) e segnali di abbandono (anno nel footer, WordPress, tema).
 import { safeFetch } from './fetcher.js';
 import { parsePhpVersion } from './checks/site.js';
+import { pickInternalLinks } from './checks/links.js';
 import { parseTargetUrl } from './validate.js';
 import { copyrightYear, detectWordPress, styleSources, feedLinks, detectLegacyTech, detectPlatform } from './html.js';
 import { analyzeCss, finalizeCss, colorFamilies, googleFontFamilies } from './css.js';
@@ -44,6 +45,7 @@ export async function collectExtras(site, { fetchImpl = fetch } = {}) {
   const html = home.text;
   takePhp(home);
   out.legacy = detectLegacyTech(html);
+  out.links = pickInternalLinks(html, home.finalUrl, 12);
   out.platform = detectPlatform(html, home.headers);
 
   out.year = copyrightYear(html);

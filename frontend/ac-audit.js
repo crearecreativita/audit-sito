@@ -99,11 +99,12 @@
 
   /* ───────── avanzamento ───────── */
   var STEP_DEFS = [
-    { id: 'psiMobile', label: 'Misuro la velocità da telefono', share: 0.34, eta: 30 },
-    { id: 'psiDesktop', label: 'Misuro la velocità da computer', share: 0.18, eta: 25 },
-    { id: 'site', label: 'Leggo titolo, descrizione e struttura della pagina', share: 0.2, eta: 7 },
-    { id: 'ssl', label: 'Controllo il certificato di sicurezza', share: 0.06, eta: 5 },
-    { id: 'style', label: 'Guardo font, colori e segnali di manutenzione', share: 0.17, eta: 9, after: 'site' }
+    { id: 'psiMobile', label: 'Misuro la velocità da telefono', share: 0.32, eta: 30 },
+    { id: 'psiDesktop', label: 'Misuro la velocità da computer', share: 0.17, eta: 25 },
+    { id: 'site', label: 'Leggo titolo, descrizione e struttura della pagina', share: 0.18, eta: 7 },
+    { id: 'ssl', label: 'Controllo il certificato di sicurezza', share: 0.05, eta: 5 },
+    { id: 'style', label: 'Guardo font, colori e segnali di manutenzione', share: 0.15, eta: 9 },
+    { id: 'links', label: 'Controllo che i link principali funzionino', share: 0.08, eta: 6 }
   ];
   var FINISH_SHARE = 0.05;
 
@@ -210,10 +211,17 @@
       var siteOk = false;
       try { siteOk = results.site && JSON.parse(results.site.payload).ok; } catch (e) { siteOk = false; }
       if (!siteOk || abort) {
-        ['psiMobile', 'psiDesktop', 'style'].forEach(function (id) { tracker.end(id, false); });
+        ['psiMobile', 'psiDesktop', 'style', 'links'].forEach(function (id) { tracker.end(id, false); });
         return;
       }
-      return Promise.all([step('psiMobile'), step('psiDesktop'), step('style', { site: results.site })]);
+      // gli stili vengono letti per primi: dal loro risultato firmato arriva l'elenco dei link da controllare
+      var styleThenLinks = step('style', { site: results.site }).then(function () {
+        var styleOk = false;
+        try { styleOk = results.style && JSON.parse(results.style.payload).ok; } catch (e) { styleOk = false; }
+        if (!styleOk || abort) { tracker.end('links', false); return; }
+        return step('links', { style: results.style });
+      });
+      return Promise.all([step('psiMobile'), step('psiDesktop'), styleThenLinks]);
     });
     Promise.all([siteP, step('ssl')]).then(function () {
       if (abort) throw abort;

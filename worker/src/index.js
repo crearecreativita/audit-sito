@@ -10,11 +10,12 @@ import { checkCertificate } from './ssl.js';
 import { buildReport } from './report.js';
 import { saveLead, parkLead } from './leads.js';
 import { collectExtras, buildExtras } from './extras.js';
+import { checkLinks } from './checks/links.js';
 
 const CONSENT_VERSION = 'informativa-2026-10';
 const MAX_BODY = 400_000;
 const MIN_FORM_MS = 2000;
-const STEPS = ['psiMobile', 'psiDesktop', 'site', 'ssl', 'style'];
+const STEPS = ['psiMobile', 'psiDesktop', 'site', 'ssl', 'style', 'links'];
 const REPORT_TTL = 6 * 3600;
 const randomHex = (bytes) => [...crypto.getRandomValues(new Uint8Array(bytes))].map((b) => b.toString(16).padStart(2, '0')).join('');
 
@@ -90,6 +91,15 @@ async function runStep(step, tok, body, env, deps) {
       const parsed = JSON.parse(siteStep.payload);
       if (!parsed.ok) throw new AuditError('step_invalid', 'Passo non valido.', 400);
       return { data: await collectExtras(parsed.data, { fetchImpl: f }) };
+    }
+    case 'links': {
+      // l'elenco dei link arriva dal passo "style" firmato: il browser non può farci visitare indirizzi a piacere
+      const st = body.style;
+      const ok = st && typeof st.payload === 'string' && (await verify(requireSecret(env), `step.${tok.j}.style.${st.payload}`, st.sig));
+      if (!ok) throw new AuditError('step_invalid', 'Passo non valido.', 400);
+      const parsed = JSON.parse(st.payload);
+      if (!parsed.ok || !Array.isArray(parsed.data.links)) throw new AuditError('step_invalid', 'Passo non valido.', 400);
+      return { data: await checkLinks(parsed.data.links, { fetchImpl: f }) };
     }
     default:
       throw new AuditError('step_unknown', 'Passo sconosciuto.', 400);

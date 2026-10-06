@@ -11,7 +11,7 @@ Browser (WordPress o GitHub Pages)
    │  frontend statico: ac-audit.css + ac-audit.js (classi "ac-", nessun framework)
    ▼
 Cloudflare Worker  ── /api/start   valida form, honeypot, Turnstile (opz.), rate limit → token firmato
-   │               ── /api/step    5 passi in parallelo: psiMobile, psiDesktop, site, ssl, style
+   │               ── /api/step    6 passi: psiMobile, psiDesktop, site, ssl, style, links
    │               ── /api/finish  verifica le firme, calcola il report, salva il contatto
    ├─▶ PageSpeed Insights (chiave API nel Worker)
    ├─▶ home e file del sito analizzato (HTML, CSS, robots.txt, sitemap)
@@ -184,6 +184,7 @@ Ricordati di rigenerare con l'`apiUrl` vero (`node scripts/build.mjs`) prima di 
 
 - **Scadenza SSL**: un Worker non può leggere il certificato di un altro sito, quindi la data arriva dai registri pubblici di Certificate Transparency (Cert Spotter, gratuito, con limiti di richieste). Se il registro non risponde, il report scrive "non verificabile" e non penalizza.
 - **Cookie banner**: si cerca nel codice della home (gestori noti, testi tipici). Un banner caricato in modo insolito può sfuggire; per questo il problema compare solo se ci sono anche strumenti di tracciamento.
+- **Link rotti**: si controllano fino a 12 link interni della home, tre alla volta (richiesta HEAD, con GET se il server non la gestisce). Contano come rotti solo 404, 410 e 500; 403, 429, 502, 503, 504 e i timeout sono protezioni o sovraccarichi e vengono ignorati. I link verso altri siti (social compresi) non si controllano. L'elenco dei link arriva dal passo "style" firmato: il browser non può far visitare al Worker indirizzi a piacere.
 - **Titoli (H1-H6)**: si leggono dal contenuto principale (`<main>`, oppure la pagina senza intestazione, piè di pagina, menu e barre laterali). Si segnalano: nessun H2 in un testo lungo (almeno circa 250 parole), salti di livello (H1 → H4) e titoli vuoti. Spesso i salti vengono da widget del tema che scelgono il livello in base alla grandezza del carattere.
 - **Tecnologie datate**: jQuery e Bootstrap si leggono dai nomi dei file caricati (si prende la versione più alta trovata, per non dare falsi allarmi); i tag HTML obsoleti (`<font>`, `<center>`…) e Flash dal codice della home. Funziona solo se la versione compare nel nome del file.
 - **Colori e font**: letti dal CSS. Le palette predefinite di WordPress, Elementor e Bootstrap sono escluse; i CSS dei plugin vengono saltati quando è possibile, ma le cache che uniscono tutto in un file li rendono indistinguibili. Il report dice che è una stima.

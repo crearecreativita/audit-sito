@@ -208,7 +208,7 @@ function mobileArea(psiMobile, site) {
 
 /* ───────────────────────── SEO BASE ───────────────────────── */
 
-function seoArea(site) {
+function seoArea(site, links) {
   const s = site.seo;
   const issues = [];
   const passed = [];
@@ -358,6 +358,24 @@ function seoArea(site) {
     }
     if (!noH2 && !hd.skips && !hd.empty) passed.push('Titoli ben organizzati');
     pts.push({ w: 6, v: 100 - (noH2 ? 25 : 0) - (hd.skips ? 25 : 0) - (hd.empty ? 10 : 0) });
+  }
+
+  // link interni rotti (controllati a campione dalla home)
+  if (links && links.checked > 0) {
+    const n = links.broken.length;
+    const path = (u) => { try { const x = new URL(u); return decodeURIComponent(x.pathname + x.search).slice(0, 60); } catch { return u.slice(0, 60); } };
+    const list = links.broken.slice(0, 3).map((b) => `${path(b.url)}${b.status ? ` (${b.status})` : ' (rimanda in loop)'}`).join(', ');
+    rows.push(row('Link interni funzionanti', `${links.checked - n} su ${links.checked}`, n === 0 ? 'ok' : n >= 3 ? 'bad' : 'warn',
+      n ? `Non trovati: ${list}.` : 'Controllati a campione, a partire dalla home.'));
+    if (n) {
+      issues.push(issue('links-broken', 'seo', n >= 3 ? 'media' : 'bassa',
+        n === 1 ? 'Un link della home porta a una pagina che non esiste' : `${n} link della home portano a pagine che non esistono`,
+        `Ho controllato ${links.checked} link interni della home a campione: ${list}${n > 3 ? ` e altri ${n - 3}` : ''}.`,
+        'Chi clicca trova una pagina d’errore e se ne va; Google lo nota e il sito sembra trascurato.',
+        'Si correggono i link nel menu e nelle pagine, oppure si reindirizza il vecchio indirizzo alla pagina giusta (Yoast e il plugin Redirection lo permettono).',
+        Math.min(35, 10 + n * 6)));
+    } else if (links.checked >= 3) passed.push('Link interni funzionanti');
+    pts.push({ w: 6, v: n === 0 ? 100 : n >= 3 ? 25 : 65 });
   }
 
   // canonical
@@ -540,7 +558,7 @@ export function buildReport({ steps, now = Date.now(), extras = [] }) {
   const parts = [];
   if (mobile) parts.push(speedArea(mobile, desktop));
   if (site || mobile) parts.push(mobileArea(mobile, site));
-  if (site) parts.push(seoArea(site));
+  if (site) parts.push(seoArea(site, steps.links?.ok ? steps.links.data : null));
   if (site) parts.push(trustArea(mobile, site, ssl));
 
   const areas = parts.map((p) => p.area);
